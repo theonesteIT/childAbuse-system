@@ -74,8 +74,8 @@ export default function AdminSignup() {
       <div className="flex-1 flex items-center justify-center px-5 sm:px-10 py-12 lg:py-0">
         <div className="w-full max-w-[420px]">
           <div className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-green-700 mb-3">
-              <span className="block w-4 h-px bg-green-500" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-yellow-700 mb-3">
+              <span className="block w-4 h-px bg-yellow-400" />
               Admin signup
             </span>
             <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 leading-tight">
@@ -165,7 +165,10 @@ export default function AdminSignup() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 py-3.5 disabled:opacity-60 font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 10px 30px rgba(244,180,0,0.18)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
               >
                 {loading ? <Spinner /> : <><span>Create admin</span><ArrowRight className="w-4 h-4" /></>}
               </button>
@@ -175,7 +178,7 @@ export default function AdminSignup() {
           {!success && (
             <p className="text-center text-[13px] text-slate-500 mt-8">
               Already have credentials?{" "}
-              <Link to="/login" className="font-bold text-green-700 hover:text-green-900 transition-colors">
+              <Link to="/login" className="font-bold text-yellow-700 hover:text-yellow-900 transition-colors">
                 Sign in →
               </Link>
             </p>

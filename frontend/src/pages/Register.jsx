@@ -36,14 +36,14 @@ const STRENGTH_COLOR = [
   "",
   "bg-red-400",
   "bg-yellow-400",
-  "bg-blue-500",
+  "bg-yellow-500",
   "bg-green-500",
 ];
 const STRENGTH_TEXT = [
   "",
   "text-red-500",
   "text-yellow-600",
-  "text-blue-600",
+  "text-yellow-700",
   "text-green-600",
 ];
 
@@ -56,21 +56,26 @@ function StepBar({ step }) {
           <div
             className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold transition-all duration-300
               ${step === s
-                ? "bg-green-700 text-white shadow-sm ring-2 ring-green-200"
+                ? "ring-2 ring-yellow-200 shadow-sm"
                 : step > s
-                  ? "bg-green-500 text-white"
+                  ? ""
                   : "bg-slate-200 text-slate-500"}`}
+            style={step === s
+              ? { background: '#F4B400', color: '#111827' }
+              : step > s
+              ? { background: '#22C55E', color: '#fff' }
+              : {}}
           >
             {step > s
               ? <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               : s}
           </div>
           <span className={`text-[12px] font-semibold transition-colors
-            ${step === s ? "text-green-700" : step > s ? "text-green-500" : "text-slate-400"}`}>
+            ${step === s ? "text-yellow-700" : step > s ? "text-green-500" : "text-slate-400"}`}>
             {s === 1 ? "Your info" : "Security"}
           </span>
           {idx < 1 && (
-            <div className={`w-10 h-px transition-colors ${step > 1 ? "bg-green-400" : "bg-slate-200"}`} />
+            <div className={`w-10 h-px transition-colors ${step > 1 ? "bg-yellow-400" : "bg-slate-200"}`} />
           )}
         </div>
       ))}
@@ -163,7 +168,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50">
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--simba-bg-main)' }}>
 
       {/* ── Mobile top bar ── */}
       <MobileTopBar
@@ -184,8 +189,8 @@ export default function Register() {
 
           {/* ── Page heading ── */}
           <div className="mb-6">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-green-700 mb-3">
-              <span className="block w-4 h-px bg-green-500" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-yellow-700 mb-3">
+              <span className="block w-4 h-px bg-yellow-400" />
               Create account
             </span>
             <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 leading-tight">
@@ -210,8 +215,8 @@ export default function Register() {
               </p>
               <Link
                 to="/login"
-                className="block w-full py-3 bg-green-700 hover:bg-green-800 text-white font-bold text-[14px]
-                  rounded-xl transition-colors text-center"
+                className="block w-full py-3 text-[14px] font-bold rounded-xl transition-colors text-center"
+                style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827' }}
               >
                 Sign in now →
               </Link>
@@ -268,7 +273,7 @@ export default function Register() {
                           appearance-none cursor-pointer transition-all
                           ${errors.role
                             ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                            : "border-slate-200 bg-white focus:border-green-500 focus:ring-2 focus:ring-green-50"}
+                            : "border-slate-200 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"}
                           ${!form.role ? "text-slate-400" : "text-slate-800"}`}
                       >
                         <option value="" disabled>Select your role</option>
@@ -292,9 +297,10 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 mt-1 bg-green-700
-                      hover:bg-green-800 text-white font-bold text-[14px] rounded-xl shadow-sm
-                      transition-all active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 mt-1 font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 10px 30px rgba(244,180,0,0.18)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
                   >
                     Continue <ArrowRight className="w-4 h-4" />
                   </button>
@@ -310,7 +316,7 @@ export default function Register() {
                     type="button"
                     onClick={handleBack}
                     className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-400
-                      hover:text-green-700 transition-colors mb-1"
+                      hover:text-yellow-700 transition-colors mb-1"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Back to your info
                   </button>
@@ -386,8 +392,8 @@ export default function Register() {
                       <button
                         type="button"
                         onClick={() => setAgreed(!agreed)}
-                        className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center shrink-0
-                          transition-all ${agreed ? "bg-green-700 border-green-700" : "border-slate-300 bg-white"}`}
+                        className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${agreed ? "border-yellow-500" : "border-slate-300 bg-white"}`}
+                      style={agreed ? { background: '#F4B400' } : {}}
                         aria-pressed={agreed}
                       >
                         {agreed && (
@@ -398,11 +404,11 @@ export default function Register() {
                       </button>
                       <span className="text-[12px] text-slate-600 leading-[1.65]">
                         I agree to the{" "}
-                        <a href="/terms" className="font-semibold text-green-700 hover:underline">
+                         <a href="/terms" className="font-semibold text-yellow-700 hover:underline">
                           Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a href="/privacy" className="font-semibold text-green-700 hover:underline">
+                        <a href="/privacy" className="font-semibold text-yellow-700 hover:underline">
                           Privacy Policy
                         </a>
                       </span>
@@ -418,9 +424,10 @@ export default function Register() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-700
-                      hover:bg-green-800 disabled:opacity-60 text-white font-bold text-[14px]
-                      rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 disabled:opacity-60 font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 10px 30px rgba(244,180,0,0.18)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
                   >
                     {loading
                       ? <Spinner />
@@ -437,7 +444,7 @@ export default function Register() {
               {/* ── Switch to Login ── */}
               <p className="text-center text-[13px] text-slate-500 mt-8">
                 Already have an account?{" "}
-                <Link to="/login" className="font-bold text-green-700 hover:text-green-900 transition-colors">
+                <Link to="/login" className="font-bold text-yellow-700 hover:text-yellow-900 transition-colors">
                   Sign in →
                 </Link>
               </p>

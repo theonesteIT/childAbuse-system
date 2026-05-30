@@ -63,7 +63,7 @@ export default function PublicReport() {
   if (createdCase) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-12">
-        <div className="mx-auto max-w-xl rounded-2xl border border-green-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto max-w-xl rounded-2xl border bg-white p-8 text-center shadow-sm" style={{ borderColor: '#F3E8C8', boxShadow: '0 10px 30px rgba(244,180,0,0.1)' }}>
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
             <CheckCircle2 className="h-7 w-7 text-green-700" />
           </div>
@@ -71,14 +71,17 @@ export default function PublicReport() {
           <p className="mb-5 text-sm text-slate-500">
             Keep this case ID to reference your report in follow-up communication.
           </p>
-          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-500">Case ID</p>
-            <p className="font-mono text-2xl font-extrabold text-blue-700">{createdCase.caseId}</p>
+          <div className="rounded-xl border px-4 py-3" style={{ borderColor: '#F3E8C8', backgroundColor: '#FFF8E1' }}>
+            <p className="text-xs font-bold uppercase tracking-wider text-yellow-700">Case ID</p>
+            <p className="font-mono text-2xl font-extrabold text-yellow-800">{createdCase.caseId}</p>
           </div>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <button
               type="button"
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+              className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all"
+              style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 8px 24px rgba(244,180,0,0.18)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
               onClick={() => {
                 setCreatedCase(null);
                 setError("");
@@ -113,7 +116,7 @@ export default function PublicReport() {
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-6">
-          <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700">
+          <p className="mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider" style={{ background: '#FFF8E1', color: '#B7791F', border: '1px solid #F3E8C8' }}>
             <ShieldAlert className="h-3.5 w-3.5" />
             Public Tip Line
           </p>
@@ -133,10 +136,13 @@ export default function PublicReport() {
                 className={`rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
                   type === reportType
                     ? reportType === "Missing"
-                      ? "border-blue-600 bg-blue-600 text-white"
+                      ? "text-yellow-900"
                       : "border-red-600 bg-red-600 text-white"
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
+                style={type === reportType && reportType === "Missing"
+                  ? { background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', borderColor: '#D99A00', boxShadow: '0 4px 12px rgba(244,180,0,0.2)' }
+                  : {}}
               >
                 {reportType === "Missing" ? "Missing Child" : "Child Abuse"}
               </button>
@@ -151,7 +157,8 @@ export default function PublicReport() {
             <button
               type="button"
               onClick={() => setAnonymous((prev) => !prev)}
-              className={`relative h-5 w-10 rounded-full transition-colors ${anonymous ? "bg-blue-600" : "bg-slate-300"}`}
+              className={`relative h-5 w-10 rounded-full transition-colors ${anonymous ? "" : "bg-slate-300"}`}
+              style={anonymous ? { background: '#F4B400' } : {}}
             >
               <span
                 className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
@@ -257,14 +264,17 @@ export default function PublicReport() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold disabled:opacity-60 transition-all"
+              style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 8px 24px rgba(244,180,0,0.18)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
             >
               <FileText className="h-4 w-4" />
               {submitting ? "Submitting..." : "Submit Report"}
             </button>
             <div className="text-xs text-slate-500">
               Have an account?{" "}
-              <Link to="/login" className="font-semibold text-blue-700 hover:underline">
+              <Link to="/login" className="font-semibold text-yellow-700 hover:underline">
                 Sign in
               </Link>
             </div>

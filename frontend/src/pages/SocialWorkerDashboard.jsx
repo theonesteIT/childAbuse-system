@@ -25,7 +25,7 @@ function buildStats(s = {}) {
 const RISK_CONFIG = {
   high:   { bg:"bg-red-50",   text:"text-red-700",   border:"border-red-200",   dot:"bg-red-500"   },
   medium: { bg:"bg-amber-50", text:"text-amber-700", border:"border-amber-200", dot:"bg-amber-500" },
-  low:    { bg:"bg-green-50", text:"text-green-700", border:"border-green-200", dot:"bg-green-500" },
+  low:    { bg:"bg-green-50", text:"text-yellow-700", border:"border-green-200", dot:"bg-green-500" },
 };
 
 const NAV = [
@@ -40,7 +40,7 @@ const NAV = [
 ];
 
 function StatCard({ label, value, icon:Icon, color }) {
-  const C = { blue:"bg-blue-50 text-blue-600 ring-blue-100", green:"bg-green-50 text-green-600 ring-green-100", amber:"bg-amber-50 text-amber-600 ring-amber-100", red:"bg-red-50 text-red-500 ring-red-100" }[color];
+  const C = { blue:"bg-yellow-50 text-yellow-600 ring-yellow-100", green:"bg-green-50 text-green-600 ring-green-100", amber:"bg-amber-50 text-amber-600 ring-amber-100", red:"bg-red-50 text-red-500 ring-red-100" }[color];
   const [bg, ic, ring] = C.split(" ");
   return (
     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
@@ -59,7 +59,7 @@ function RiskBadge({ risk }) {
 }
 
 function Btn({ children, variant="primary", size="sm", onClick, className="" }) {
-  const V = { primary:"bg-green-700 hover:bg-green-800 text-white shadow-sm", blue:"bg-blue-600 hover:bg-blue-700 text-white shadow-sm", outline:"border border-slate-200 bg-white hover:bg-slate-50 text-slate-700", danger:"bg-red-50 hover:bg-red-100 text-red-600 border border-red-200", ghost:"text-slate-500 hover:bg-slate-100" }[variant];
+  const V = { primary:"bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm", blue:"bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm", outline:"border border-slate-200 bg-white hover:bg-[var(--simba-bg-main)] text-slate-700", danger:"bg-red-50 hover:bg-red-100 text-red-600 border border-red-200", ghost:"text-slate-500 hover:bg-slate-100" }[variant];
   const S = { sm:"px-3 py-1.5 text-[12px]", md:"px-4 py-2.5 text-[13px]" }[size];
   return <button onClick={onClick} className={`inline-flex items-center gap-1.5 font-semibold rounded-xl transition-all active:scale-[0.97] ${V} ${S} ${className}`}>{children}</button>;
 }
@@ -73,7 +73,7 @@ function CaseCard({ c, showActions=true }) {
     <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <span className="font-mono text-[11px] text-green-700 font-bold">{c.id}</span>
+          <span className="font-mono text-[11px] text-yellow-700 font-bold">{c.id}</span>
           <h3 className="text-[15px] font-extrabold text-slate-900 mt-0.5">{c.child} <span className="text-slate-400 font-normal text-[13px]">· age {c.age}</span></h3>
           <p className="text-[12px] text-slate-400 flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3"/>{c.district}</p>
         </div>
@@ -101,9 +101,9 @@ function CaseCard({ c, showActions=true }) {
 function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden bg-green-800 rounded-2xl px-6 py-5 text-white">
-        <div className="absolute -top-8 -right-8 w-36 h-36 bg-green-700 rounded-full opacity-50 pointer-events-none"/>
-        <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-blue-500 rounded-full opacity-10 pointer-events-none"/>
+      <div className="relative overflow-hidden bg-yellow-600 rounded-2xl px-6 py-5 text-white">
+        <div className="absolute -top-8 -right-8 w-36 h-36 bg-yellow-500 rounded-full opacity-50 pointer-events-none"/>
+        <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-yellow-500 rounded-full opacity-10 pointer-events-none"/>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold tracking-widest uppercase text-green-200 mb-1">Welcome back</p>
@@ -111,7 +111,7 @@ function DashboardView({ onNav, cases, stats, loading }) {
             <p className="text-[13px] text-green-200 mt-0.5">Social Worker · MINISANTE Nyarugenge</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={()=>onNav("cases")} className="flex items-center gap-2 px-4 py-2.5 bg-white text-green-800 font-bold text-[13px] rounded-xl hover:bg-green-50">
+            <button onClick={()=>onNav("cases")} className="flex items-center gap-2 px-4 py-2.5 bg-white text-yellow-800 font-bold text-[13px] rounded-xl hover:bg-green-50">
               <FolderOpen className="w-4 h-4"/>My Cases
             </button>
             <button onClick={()=>onNav("visits")} className="flex items-center gap-2 px-4 py-2.5 bg-white/10 border border-white/30 text-white font-bold text-[13px] rounded-xl hover:bg-white/20">
@@ -129,7 +129,7 @@ function DashboardView({ onNav, cases, stats, loading }) {
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between mb-1">
             <p className="font-extrabold text-slate-800">High-Risk Cases</p>
-            <button onClick={()=>onNav("cases")} className="text-[12px] font-semibold text-green-700">View all →</button>
+            <button onClick={()=>onNav("cases")} className="text-[12px] font-semibold text-yellow-700">View all →</button>
           </div>
           {cases.filter(c=>c.risk==="high").map(c => <CaseCard key={c.id} c={c} />)}
         </div>
@@ -139,9 +139,9 @@ function DashboardView({ onNav, cases, stats, loading }) {
             <p className="font-extrabold text-slate-800 mb-4">Today's Visits</p>
             <div className="space-y-3">
               {cases.slice(0,3).map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50">
+                <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--simba-bg-main)]">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <Home className="w-4 h-4 text-green-700"/>
+                    <Home className="w-4 h-4 text-yellow-700"/>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12px] font-bold text-slate-800 truncate">{c.child}</p>
@@ -154,11 +154,11 @@ function DashboardView({ onNav, cases, stats, loading }) {
           </div>
 
           <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
-            <p className="font-extrabold text-green-800 mb-1">Child Welfare Summary</p>
+            <p className="font-extrabold text-yellow-800 mb-1">Child Welfare Summary</p>
             <div className="space-y-2 mt-3">
-              {[{l:"Children at risk",v:5,c:"text-red-600"},{l:"Stable / improving",v:13,c:"text-green-700"},{l:"Pending assessment",v:4,c:"text-amber-600"}].map(x=>(
+              {[{l:"Children at risk",v:5,c:"text-red-600"},{l:"Stable / improving",v:13,c:"text-yellow-700"},{l:"Pending assessment",v:4,c:"text-amber-600"}].map(x=>(
                 <div key={x.l} className="flex justify-between text-[12px]">
-                  <span className="text-green-700">{x.l}</span>
+                  <span className="text-yellow-700">{x.l}</span>
                   <span className={`font-extrabold ${x.c}`}>{x.v}</span>
                 </div>
               ))}
@@ -179,7 +179,7 @@ function CasesView({ cases }) {
       <div className="flex gap-2 flex-wrap">
         {["All","high","medium","low"].map(f=>(
           <button key={f} onClick={()=>setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${filter===f?"bg-green-700 text-white border-green-700":"bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${filter===f?"bg-yellow-500 text-white border-green-700":"bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
             {f==="All"?"All":`${f} risk`}
           </button>
         ))}
@@ -198,7 +198,7 @@ function VisitsView({ cases }) {
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-green-700 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-700 font-bold">{c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
               <p className="text-[12px] text-slate-400">Next visit: {c.nextVisit}</p>
             </div>
@@ -237,7 +237,7 @@ function AssessmentView({ cases }) {
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-green-700 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-700 font-bold">{c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <RiskBadge risk={c.risk}/>
@@ -266,15 +266,15 @@ function ReferralsView({ cases }) {
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-green-700 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-700 font-bold">{c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <RiskBadge risk={c.risk}/>
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             {[
-              {label:"Refer to Police",   color:"bg-blue-600 hover:bg-blue-700 text-white",    icon:"🚔"},
-              {label:"Refer to Hospital", color:"bg-green-700 hover:bg-green-800 text-white",  icon:"🏥"},
+              {label:"Refer to Police",   color:"bg-yellow-500 hover:bg-yellow-600 text-white",    icon:"🚔"},
+              {label:"Refer to Hospital", color:"bg-yellow-500 hover:bg-yellow-600 text-white",  icon:"🏥"},
               {label:"Escalate Case",     color:"bg-red-600 hover:bg-red-700 text-white",      icon:"⚡"},
             ].map(r=>(
               <button key={r.label} className={`flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-[13px] transition-all ${r.color}`}>
@@ -297,7 +297,7 @@ function FollowUpView({ cases }) {
         {cases.map((c,i)=>(
           <div key={c.id} className="flex items-center gap-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
             <div className="w-12 h-12 rounded-2xl bg-green-100 flex flex-col items-center justify-center shrink-0">
-              <p className="text-[14px] font-extrabold text-green-700">{c.nextVisit.split("-")[2]}</p>
+              <p className="text-[14px] font-extrabold text-yellow-700">{c.nextVisit.split("-")[2]}</p>
               <p className="text-[9px] text-green-600 font-bold uppercase">Apr</p>
             </div>
             <div className="flex-1 min-w-0">
@@ -323,7 +323,7 @@ function ReportsView() {
           {t:"Referral Summary",s:"All referrals and outcomes",i:ArrowRightLeft}].map(r=>(
           <div key={r.t} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center mb-3">
-              <r.i className="w-5 h-5 text-green-700"/>
+              <r.i className="w-5 h-5 text-yellow-700"/>
             </div>
             <h3 className="text-[14px] font-bold text-slate-800 mb-1">{r.t}</h3>
             <p className="text-[12px] text-slate-500 mb-4">{r.s}</p>
@@ -377,27 +377,27 @@ export default function SocialWorkerDashboard() {
   };
   const cur = NAV.find(n=>n.id===active);
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-[var(--simba-bg-main)] overflow-hidden font-sans">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 xl:w-64 bg-white border-r border-slate-100 flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen?"translate-x-0":"-translate-x-full"}`}>
         <div className="px-5 py-5 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-green-700 flex items-center justify-center shadow-sm"><Heart className="w-5 h-5 text-white"/></div>
-            <div><p className="text-[14px] font-extrabold text-green-700">Childwatch</p><p className="text-[10px] text-slate-400 font-medium">Social Worker</p></div>
+            <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center shadow-sm"><Heart className="w-5 h-5 text-white"/></div>
+            <div><p className="text-[14px] font-extrabold text-yellow-700">Childwatch</p><p className="text-[10px] text-slate-400 font-medium">Social Worker</p></div>
           </div>
         </div>
         <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
           {NAV.map(item=>{
             const Icon=item.icon; const isA=active===item.id;
             return <button key={item.id} onClick={()=>{setActive(item.id);setSidebarOpen(false);}}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${isA?"bg-green-700 text-white shadow-sm":"text-slate-600 hover:bg-slate-50"}`}>
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${isA?"bg-yellow-500 text-white shadow-sm":"text-slate-600 hover:bg-[var(--simba-bg-main)]"}`}>
               <Icon className="w-4 h-4 shrink-0"/>{item.label}
             </button>;
           })}
         </nav>
         <div className="px-4 pb-5 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-green-700">AM</span></div>
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--simba-bg-main)]">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-yellow-700">AM</span></div>
             <div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-slate-800 truncate">Aline Mukamana</p><p className="text-[10px] text-slate-400">Social Worker</p></div>
             <button className="text-slate-400 hover:text-slate-700" onClick={handleLogout}><LogOut className="w-4 h-4"/></button>
           </div>
@@ -411,7 +411,7 @@ export default function SocialWorkerDashboard() {
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell accentColor="green" />
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><span className="text-[11px] font-bold text-green-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "SW"}</span></div>
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><span className="text-[11px] font-bold text-yellow-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "SW"}</span></div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{SECTIONS[active]}</main>
@@ -419,7 +419,7 @@ export default function SocialWorkerDashboard() {
           {[{id:"dashboard",icon:LayoutDashboard,label:"Home"},{id:"cases",icon:FolderOpen,label:"Cases"},{id:"visits",icon:Home,label:"Visits"},{id:"referrals",icon:ArrowRightLeft,label:"Refer"},{id:"alerts",icon:Bell,label:"Alerts"}].map(item=>{
             const Icon=item.icon; const isA=active===item.id;
             return <button key={item.id} onClick={()=>setActive(item.id)} className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl">
-              <Icon className={`w-5 h-5 ${isA?"text-green-700":"text-slate-400"}`}/><span className={`text-[9px] font-bold ${isA?"text-green-700":"text-slate-400"}`}>{item.label}</span>
+              <Icon className={`w-5 h-5 ${isA?"text-yellow-700":"text-slate-400"}`}/><span className={`text-[9px] font-bold ${isA?"text-yellow-700":"text-slate-400"}`}>{item.label}</span>
             </button>;
           })}
         </div>
@@ -427,3 +427,4 @@ export default function SocialWorkerDashboard() {
     </div>
   );
 }
+

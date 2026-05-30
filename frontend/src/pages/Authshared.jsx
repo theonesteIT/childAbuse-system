@@ -12,21 +12,16 @@ export function BrandPanel({ mode }) {
     { icon: <FileText className="w-4 h-4" />, text: "Track your case progress"          },
   ];
 
-  const isLogin = mode === "login";
-
   return (
     <div
-      className={`hidden lg:flex flex-col justify-between relative overflow-hidden min-h-screen w-full px-10 py-12
-        ${isLogin ? "bg-blue-700" : "bg-green-800"}`}
+      className="hidden lg:flex flex-col justify-between relative overflow-hidden min-h-screen w-full px-10 py-12"
+      style={{ background: "linear-gradient(135deg, #F4B400 0%, #D71920 100%)" }}
     >
       {/* Decorative blobs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className={`absolute -top-24 -left-24 w-80 h-80 rounded-full opacity-60
-          ${isLogin ? "bg-blue-600" : "bg-green-700"}`} />
-        <div className={`absolute top-1/3 -right-20 w-64 h-64 rounded-full opacity-20
-          ${isLogin ? "bg-green-600" : "bg-blue-600"}`} />
-        <div className={`absolute -bottom-20 left-1/3 w-56 h-56 rounded-full opacity-50
-          ${isLogin ? "bg-blue-800" : "bg-green-900"}`} />
+        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full opacity-20 bg-white" />
+        <div className="absolute top-1/3 -right-20 w-64 h-64 rounded-full opacity-10 bg-white" />
+        <div className="absolute -bottom-20 left-1/3 w-56 h-56 rounded-full opacity-15 bg-[#111111]" />
         {/* Dot grid */}
         <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -41,7 +36,7 @@ export function BrandPanel({ mode }) {
       {/* Logo */}
       <div className="relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+          <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center backdrop-blur-sm">
             <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <div>
@@ -53,16 +48,16 @@ export function BrandPanel({ mode }) {
 
       {/* Copy */}
       <div className="relative z-10 flex-1 flex flex-col justify-center py-10">
-        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-full px-3 py-1.5 text-[11px] font-semibold mb-6 w-fit">
-          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLogin ? "bg-green-400" : "bg-blue-300"}`} />
+        <div className="inline-flex items-center gap-2 bg-black/10 backdrop-blur-sm border border-white/20 text-white rounded-full px-3 py-1.5 text-[11px] font-semibold mb-6 w-fit">
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-white" />
           Rwanda Child Protection Platform
         </div>
 
         <h2 className="text-3xl xl:text-4xl font-extrabold text-white leading-[1.15] mb-4">
-          {isLogin ? "Welcome back to Childwatch" : "Join the Childwatch network"}
+          {mode === "login" ? "Welcome back to Childwatch" : "Join the Childwatch network"}
         </h2>
-        <p className="text-[14px] text-white/70 leading-[1.8] max-w-sm">
-          {isLogin
+        <p className="text-[14px] text-white/80 leading-[1.8] max-w-sm">
+          {mode === "login"
             ? "Sign in to access your dashboard, track case progress, and coordinate with protection agencies."
             : "Create your account to report cases, receive alerts, and work with Rwanda's child protection institutions."}
         </p>
@@ -71,10 +66,10 @@ export function BrandPanel({ mode }) {
         <div className="mt-8 space-y-3">
           {features.map((f) => (
             <div key={f.text} className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-black/15 flex items-center justify-center text-white shrink-0">
                 {f.icon}
               </div>
-              <span className="text-[13px] text-white/75 font-medium">{f.text}</span>
+              <span className="text-[13px] text-white/80 font-medium">{f.text}</span>
             </div>
           ))}
         </div>
@@ -82,10 +77,10 @@ export function BrandPanel({ mode }) {
 
       {/* Live case preview card */}
       <div className="relative z-10">
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+        <div className="bg-black/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[11px] font-semibold text-green-300">Case active — #CW-2026-00124</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            <span className="text-[11px] font-semibold text-white/80">Case active — #CW-2026-00124</span>
           </div>
           <p className="text-[13px] font-semibold text-white mb-1">Missing child report</p>
           <div className="flex items-center gap-3 text-[11px] text-white/50 mb-3">
@@ -96,7 +91,7 @@ export function BrandPanel({ mode }) {
             <span>2 hours ago</span>
           </div>
           <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-1.5 bg-green-400 rounded-full" style={{ width: "65%" }} />
+            <div className="h-1.5 bg-white rounded-full" style={{ width: "65%" }} />
           </div>
           <p className="text-[11px] text-white/50 mt-1.5">Response in progress · Authorities notified</p>
         </div>
@@ -106,19 +101,21 @@ export function BrandPanel({ mode }) {
 }
 
 // ── Mobile sticky top bar ─────────────────────────────────────────
-export function MobileTopBar({ href, linkLabel, linkText, isLogin }) {
+export function MobileTopBar({ href, linkLabel, linkText }) {
   return (
-    <div className={`lg:hidden flex items-center justify-between px-5 py-4 sticky top-0 z-40
-      ${isLogin ? "bg-blue-700" : "bg-green-800"}`}>
+    <div
+      className="lg:hidden flex items-center justify-between px-5 py-4 sticky top-0 z-40"
+      style={{ background: "linear-gradient(135deg, #F4B400 0%, #D71920 100%)" }}
+    >
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
           <Shield className="w-4 h-4 text-white" strokeWidth={2.5} />
         </div>
         <span className="text-[15px] font-extrabold text-white">Childwatch</span>
       </div>
-      <a href={href} className="text-[12px] font-semibold text-white/70 hover:text-white transition-colors">
+      <a href={href} className="text-[12px] font-semibold text-white/80 hover:text-white transition-colors">
         {linkText}{" "}
-        <span className={isLogin ? "text-green-300" : "text-blue-300"}>{linkLabel}</span>
+        <span className="text-white font-bold">{linkLabel}</span>
       </a>
     </div>
   );
@@ -145,7 +142,7 @@ export function Field({ label, type = "text", placeholder, icon: Icon, value, on
           className={`w-full ${Icon ? "pl-10" : "pl-4"} ${suffix ? "pr-11" : "pr-4"} py-3 text-[14px] rounded-xl border transition-all outline-none
             ${error
               ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-              : "border-slate-200 bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-50"
+              : "border-slate-200 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
             } text-slate-800 placeholder-slate-400`}
         />
         {suffix && (

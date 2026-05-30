@@ -35,15 +35,15 @@ const NAV = [
 
 const STATUS_CONFIG = {
   emergency: { bg:"bg-red-50",   text:"text-red-700",   border:"border-red-200",   dot:"bg-red-500"   },
-  active:    { bg:"bg-blue-50",  text:"text-blue-700",  border:"border-blue-200",  dot:"bg-blue-500"  },
+  active:    { bg:"bg-yellow-50",  text:"text-yellow-700",  border:"border-yellow-200",  dot:"bg-yellow-500"  },
   pending:   { bg:"bg-amber-50", text:"text-amber-700", border:"border-amber-200", dot:"bg-amber-500" },
   completed: { bg:"bg-green-50", text:"text-green-700", border:"border-green-200", dot:"bg-green-500" },
 };
 
-const COND_COLOR = { Critical:"text-red-600", Stable:"text-blue-600", Fair:"text-amber-600", Recovered:"text-green-600" };
+const COND_COLOR = { Critical:"text-red-600", Stable:"text-yellow-600", Fair:"text-amber-600", Recovered:"text-green-600" };
 
 function StatCard({ label, value, icon:Icon, color }) {
-  const C = { blue:"bg-blue-50 text-blue-600 ring-blue-100", green:"bg-green-50 text-green-600 ring-green-100", amber:"bg-amber-50 text-amber-600 ring-amber-100", red:"bg-red-50 text-red-500 ring-red-100" }[color];
+  const C = { blue:"bg-yellow-50 text-yellow-600 ring-yellow-100", green:"bg-green-50 text-green-600 ring-green-100", amber:"bg-amber-50 text-amber-600 ring-amber-100", red:"bg-red-50 text-red-500 ring-red-100" }[color];
   const [bg, ic, ring] = C.split(" ");
   return (
     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
@@ -60,7 +60,7 @@ function StatusBadge({ status }) {
 }
 
 function Btn({ children, variant="primary", size="sm", onClick, className="" }) {
-  const V = { primary:"bg-green-700 hover:bg-green-800 text-white shadow-sm", blue:"bg-blue-600 hover:bg-blue-700 text-white shadow-sm", outline:"border border-slate-200 bg-white hover:bg-slate-50 text-slate-700", danger:"bg-red-50 hover:bg-red-100 text-red-600 border border-red-200", ghost:"text-slate-500 hover:bg-slate-100" }[variant];
+  const V = { primary:"bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm", blue:"bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm", outline:"border border-slate-200 bg-white hover:bg-[var(--simba-bg-main)] text-slate-700", danger:"bg-red-50 hover:bg-red-100 text-red-600 border border-red-200", ghost:"text-slate-500 hover:bg-slate-100" }[variant];
   const S = { sm:"px-3 py-1.5 text-[12px]", md:"px-4 py-2.5 text-[13px]" }[size];
   return <button onClick={onClick} className={`inline-flex items-center gap-1.5 font-semibold rounded-xl transition-all active:scale-[0.97] ${V} ${S} ${className}`}>{children}</button>;
 }
@@ -72,8 +72,8 @@ function SectionTitle({ title, sub }) {
 function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden bg-blue-600 rounded-2xl px-6 py-5 text-white">
-        <div className="absolute -top-8 -right-8 w-36 h-36 bg-blue-500 rounded-full opacity-50 pointer-events-none"/>
+      <div className="relative overflow-hidden bg-yellow-500 rounded-2xl px-6 py-5 text-white">
+        <div className="absolute -top-8 -right-8 w-36 h-36 bg-yellow-500 rounded-full opacity-50 pointer-events-none"/>
         <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-green-500 rounded-full opacity-15 pointer-events-none"/>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -82,7 +82,7 @@ function DashboardView({ onNav, cases, stats, loading }) {
             <p className="text-[13px] text-blue-200 mt-0.5">CHUK University Hospital · Kicukiro</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={()=>onNav("referrals")} className="flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 font-bold text-[13px] rounded-xl hover:bg-blue-50">
+            <button onClick={()=>onNav("referrals")} className="flex items-center gap-2 px-4 py-2.5 bg-white text-yellow-700 font-bold text-[13px] rounded-xl hover:bg-yellow-50">
               <ArrowRightLeft className="w-4 h-4"/>Referrals
             </button>
             <button onClick={()=>onNav("emergency")} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-[13px] rounded-xl">
@@ -100,11 +100,11 @@ function DashboardView({ onNav, cases, stats, loading }) {
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <p className="font-extrabold text-slate-800">Recent Cases</p>
-            <button onClick={()=>onNav("referrals")} className="text-[12px] font-semibold text-blue-600">View all →</button>
+            <button onClick={()=>onNav("referrals")} className="text-[12px] font-semibold text-yellow-600">View all →</button>
           </div>
           <div className="space-y-2">
             {cases.map(c=>(
-              <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+              <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--simba-bg-main)] transition-colors">
                 <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_CONFIG[c.status]?.dot||"bg-slate-400"}`}/>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-bold text-slate-800 truncate">{c.child}</p>
@@ -125,7 +125,7 @@ function DashboardView({ onNav, cases, stats, loading }) {
               { action:"Emergency referral sent",       case:"CW-2026-011", time:"6h ago" },
               { action:"Treatment report filed",        case:"CW-2026-007", time:"1d ago" },
             ].map((a,i)=>(
-              <div key={i} className="flex gap-3 p-3 bg-slate-50 rounded-xl">
+              <div key={i} className="flex gap-3 p-3 bg-[var(--simba-bg-main)] rounded-xl">
                 <Activity className="w-4 h-4 text-blue-500 mt-0.5 shrink-0"/>
                 <div>
                   <p className="text-[12px] font-semibold text-slate-800">{a.action}</p>
@@ -149,7 +149,7 @@ function ReferralsView({ cases }) {
           {c.status==="emergency" && <div className="flex items-center gap-2 text-red-600 text-[12px] font-bold"><AlertTriangle className="w-4 h-4"/>Emergency case — immediate attention required</div>}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-600 font-bold">{c.id}</p>
               <h3 className="text-[15px] font-extrabold text-slate-900">{c.child} <span className="text-slate-400 font-normal text-[13px]">· age {c.age}</span></h3>
               <p className="text-[12px] text-slate-400">{c.district} · Referred by: <span className="font-semibold text-slate-600">{c.referred}</span></p>
             </div>
@@ -177,7 +177,7 @@ function AssessmentView({ cases }) {
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-600 font-bold">{c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <StatusBadge status={c.status}/>
@@ -209,7 +209,7 @@ function EvidenceView({ cases }) {
         <div key={c.caseId || c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-600 font-bold">{c.caseId || c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <StatusBadge status={c.status}/>
@@ -264,7 +264,7 @@ function ReportsView() {
           {t:"Treatment Summary",s:"Treatments and outcomes",i:Activity},
           {t:"Monthly Hospital Report",s:"All cases handled this month",i:Calendar}].map(r=>(
           <div key={r.t} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3"><r.i className="w-5 h-5 text-blue-600"/></div>
+            <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center mb-3"><r.i className="w-5 h-5 text-yellow-600"/></div>
             <h3 className="text-[14px] font-bold text-slate-800 mb-1">{r.t}</h3>
             <p className="text-[12px] text-slate-500 mb-4">{r.s}</p>
             <div className="flex gap-2">
@@ -316,21 +316,21 @@ export default function HealthcareDashboard() {
   };
   const cur = NAV.find(n=>n.id===active);
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-[var(--simba-bg-main)] overflow-hidden font-sans">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 xl:w-64 bg-white border-r border-slate-100 flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen?"translate-x-0":"-translate-x-full"}`}>
         <div className="px-5 py-5 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm"><Heart className="w-5 h-5 text-white"/></div>
-            <div><p className="text-[14px] font-extrabold text-blue-700">Childwatch</p><p className="text-[10px] text-slate-400 font-medium">Healthcare Portal</p></div>
+            <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center shadow-sm"><Heart className="w-5 h-5 text-white"/></div>
+            <div><p className="text-[14px] font-extrabold text-yellow-700">Childwatch</p><p className="text-[10px] text-slate-400 font-medium">Healthcare Portal</p></div>
           </div>
         </div>
         <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-          {NAV.map(item=>{const Icon=item.icon; const isA=active===item.id; return <button key={item.id} onClick={()=>{setActive(item.id);setSidebarOpen(false);}} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${isA?"bg-blue-600 text-white shadow-sm":"text-slate-600 hover:bg-slate-50"}`}><Icon className="w-4 h-4 shrink-0"/>{item.label}</button>;})}
+          {NAV.map(item=>{const Icon=item.icon; const isA=active===item.id; return <button key={item.id} onClick={()=>{setActive(item.id);setSidebarOpen(false);}} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${isA?"bg-yellow-500 text-white shadow-sm":"text-slate-600 hover:bg-[var(--simba-bg-main)]"}`}><Icon className="w-4 h-4 shrink-0"/>{item.label}</button>;})}
         </nav>
         <div className="px-4 pb-5 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-blue-700">JH</span></div>
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--simba-bg-main)]">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-yellow-700">JH</span></div>
             <div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-slate-800 truncate">Dr. Jean Habimana</p><p className="text-[10px] text-slate-400">Healthcare Provider</p></div>
             <button className="text-slate-400 hover:text-slate-700" onClick={handleLogout}><LogOut className="w-4 h-4"/></button>
           </div>
@@ -344,12 +344,12 @@ export default function HealthcareDashboard() {
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell accentColor="blue" />
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><span className="text-[11px] font-bold text-blue-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "HC"}</span></div>
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><span className="text-[11px] font-bold text-yellow-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "HC"}</span></div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{SECTIONS[active]}</main>
         <div className="lg:hidden border-t border-slate-100 bg-white flex items-center justify-around px-1 py-2 shrink-0">
-          {[{id:"dashboard",icon:LayoutDashboard,label:"Home"},{id:"referrals",icon:ArrowRightLeft,label:"Referrals"},{id:"assessment",icon:ClipboardList,label:"Assess"},{id:"emergency",icon:AlertTriangle,label:"Emergency"},{id:"reports",icon:FileText,label:"Reports"}].map(item=>{const Icon=item.icon;const isA=active===item.id;return <button key={item.id} onClick={()=>setActive(item.id)} className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl"><Icon className={`w-5 h-5 ${isA?"text-blue-600":"text-slate-400"}`}/><span className={`text-[9px] font-bold ${isA?"text-blue-600":"text-slate-400"}`}>{item.label}</span></button>;})}</div>
+          {[{id:"dashboard",icon:LayoutDashboard,label:"Home"},{id:"referrals",icon:ArrowRightLeft,label:"Referrals"},{id:"assessment",icon:ClipboardList,label:"Assess"},{id:"emergency",icon:AlertTriangle,label:"Emergency"},{id:"reports",icon:FileText,label:"Reports"}].map(item=>{const Icon=item.icon;const isA=active===item.id;return <button key={item.id} onClick={()=>setActive(item.id)} className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl"><Icon className={`w-5 h-5 ${isA?"text-yellow-600":"text-slate-400"}`}/><span className={`text-[9px] font-bold ${isA?"text-yellow-600":"text-slate-400"}`}>{item.label}</span></button>;})}</div>
       </div>
     </div>
   );

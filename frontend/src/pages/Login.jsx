@@ -64,11 +64,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50">
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--simba-bg-main)' }}>
 
       {/* ── Mobile top bar ── */}
       <MobileTopBar
-        isLogin
         href="/register"
         linkText="No account?"
         linkLabel="Register →"
@@ -85,8 +84,8 @@ export default function Login() {
 
           {/* ── Page heading ── */}
           <div className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-blue-600 mb-3">
-              <span className="block w-4 h-px bg-blue-400" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-yellow-700 mb-3">
+              <span className="block w-4 h-px bg-yellow-400" />
               Sign in
             </span>
             <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 leading-tight">
@@ -154,7 +153,8 @@ export default function Login() {
                     type="button"
                     onClick={() => setRemember(!remember)}
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-all
-                      ${remember ? "bg-blue-600 border-blue-600" : "border-slate-300 bg-white"}`}
+                      ${remember ? "border-yellow-500" : "border-slate-300 bg-white"}`}
+                    style={remember ? { background: '#F4B400' } : {}}
                     aria-pressed={remember}
                   >
                     {remember && (
@@ -167,7 +167,7 @@ export default function Login() {
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-[12px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                  className="text-[12px] font-semibold text-yellow-700 hover:text-yellow-900 transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -177,9 +177,15 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3.5 mt-1 bg-blue-600 hover:bg-blue-700
-                  disabled:opacity-60 text-white font-bold text-[14px] rounded-xl shadow-sm
-                  transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 py-3.5 mt-1 disabled:opacity-60
+                  font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                style={{
+                  background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)',
+                  color: '#111827',
+                  boxShadow: '0 10px 30px rgba(244,180,0,0.18)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
               >
                 {loading ? <Spinner /> : <><span>Sign in</span><ArrowRight className="w-4 h-4" /></>}
               </button>
@@ -216,7 +222,7 @@ export default function Login() {
                   className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white
                     hover:bg-slate-50 rounded-xl text-[13px] font-semibold text-slate-700 transition-colors"
                 >
-                  <Phone className="w-4 h-4 text-green-600" />
+                  <Phone className="w-4 h-4 text-yellow-600" />
                   Phone
                 </button>
               </div>
@@ -227,7 +233,7 @@ export default function Login() {
           {!success && (
             <p className="text-center text-[13px] text-slate-500 mt-8">
               Don&rsquo;t have an account?{" "}
-              <Link to="/register" className="font-bold text-blue-600 hover:text-blue-800 transition-colors">
+              <Link to="/register" className="font-bold text-yellow-700 hover:text-yellow-900 transition-colors">
                 Create one →
               </Link>
             </p>

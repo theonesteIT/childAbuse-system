@@ -19,9 +19,9 @@ import {
 // ── Stat builder from live API data ─────────────────────────────
 function buildStats(s = {}) {
   return [
-    { label: "Total Assigned",      value: String(s.total ?? 0),              icon: FolderOpen,    color: "blue",  delta: "cases"     },
+    { label: "Total Assigned",      value: String(s.total ?? 0),              icon: FolderOpen,    color: "amber", delta: "cases"     },
     { label: "New Cases",           value: String(s.new ?? 0),                icon: Plus,          color: "amber", delta: "today"     },
-    { label: "Under Investigation", value: String(s.underInvestigation ?? 0), icon: Search,        color: "blue",  delta: "active"    },
+    { label: "Under Investigation", value: String(s.underInvestigation ?? 0), icon: Search,        color: "amber", delta: "active"    },
     { label: "Urgent",              value: String(s.new ?? 0),                icon: AlertTriangle, color: "red",   delta: "priority"  },
     { label: "Resolved",            value: String(s.resolved ?? 0),           icon: CheckCircle2,  color: "green", delta: "this month" },
     { label: "Missing Not Found",   value: String(s.missingNotFound ?? 0),    icon: Flag,          color: "red",   delta: "open"      },
@@ -45,7 +45,7 @@ const INCIDENT_LOCATIONS = [
 
 const STATUS_CONFIG = {
   urgent:               { bg:"bg-red-50",    text:"text-red-700",    dot:"bg-red-500",    border:"border-red-200"    },
-  "under-investigation":{ bg:"bg-blue-50",   text:"text-blue-700",   dot:"bg-blue-500",   border:"border-blue-200"   },
+  "under-investigation":{ bg:"bg-amber-50",  text:"text-amber-700",  dot:"bg-amber-500",  border:"border-amber-200"  },
   new:                  { bg:"bg-amber-50",  text:"text-amber-700",  dot:"bg-amber-500",  border:"border-amber-200"  },
   resolved:             { bg:"bg-green-50",  text:"text-green-700",  dot:"bg-green-500",  border:"border-green-200"  },
 };
@@ -67,11 +67,11 @@ const STATUS_ROW_BG = { urgent:"bg-red-50/40", new:"bg-amber-50/40", resolved:""
 
 function StatCard({ label, value, icon:Icon, color, delta }) {
   const C = {
-    blue:  { bg:"bg-blue-50",  ic:"text-blue-600",  ring:"ring-blue-100"  },
-    green: { bg:"bg-green-50", ic:"text-green-600", ring:"ring-green-100" },
-    amber: { bg:"bg-amber-50", ic:"text-amber-600", ring:"ring-amber-100" },
-    red:   { bg:"bg-red-50",   ic:"text-red-500",   ring:"ring-red-100"   },
-  }[color] || { bg:"bg-blue-50", ic:"text-blue-600", ring:"ring-blue-100" };
+    blue:  { bg:"bg-amber-50",  ic:"text-amber-600",  ring:"ring-amber-100"  },
+    green: { bg:"bg-green-50",  ic:"text-green-600",  ring:"ring-green-100"  },
+    amber: { bg:"bg-amber-50",  ic:"text-amber-600",  ring:"ring-amber-100"  },
+    red:   { bg:"bg-red-50",    ic:"text-red-500",    ring:"ring-red-100"    },
+  }[color] || { bg:"bg-amber-50", ic:"text-amber-600", ring:"ring-amber-100" };
   return (
     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
       <div className={`w-10 h-10 rounded-xl ${C.bg} ring-4 ${C.ring} flex items-center justify-center mb-3`}>
@@ -105,20 +105,23 @@ function StatusBadge({ status }) {
 
 function Btn({ children, variant="primary", size="sm", onClick, className="" }) {
   const V = {
-    primary:"bg-blue-600 hover:bg-blue-700 text-white shadow-sm",
-    green:  "bg-green-700 hover:bg-green-800 text-white shadow-sm",
-    outline:"border border-slate-200 bg-white hover:bg-slate-50 text-slate-700",
+    primary:"text-gray-900 shadow-sm",
+    green:  "text-gray-900 shadow-sm",
+    outline:"border border-slate-200 bg-white hover:bg-[var(--simba-bg-main)] text-slate-700",
     danger: "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200",
     ghost:  "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
   }[variant];
+  const isPrimary = variant === "primary" || variant === "green";
   const S = { sm:"px-3 py-1.5 text-[12px]", md:"px-4 py-2.5 text-[13px]" }[size];
-  return <button onClick={onClick} className={`inline-flex items-center gap-1.5 font-semibold rounded-xl transition-all active:scale-[0.97] ${V} ${S} ${className}`}>{children}</button>;
+  return <button onClick={onClick}
+    style={isPrimary ? { background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 4px 12px rgba(244,180,0,0.18)' } : {}}
+    className={`inline-flex items-center gap-1.5 font-semibold rounded-xl transition-all active:scale-[0.97] ${V} ${S} ${className}`}>{children}</button>;
 }
 
 function TableWrap({ children }) {
   return <div className="overflow-x-auto rounded-xl border border-slate-100"><table className="w-full text-[13px]">{children}</table></div>;
 }
-function Th({ children }) { return <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 whitespace-nowrap">{children}</th>; }
+function Th({ children }) { return <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-[var(--simba-bg-main)] whitespace-nowrap">{children}</th>; }
 function Td({ children, className="" }) { return <td className={`px-4 py-3 border-t border-slate-100 text-slate-700 ${className}`}>{children}</td>; }
 
 // ── SECTIONS ──────────────────────────────────────────────────────
@@ -126,20 +129,20 @@ function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
       {/* Hero bar */}
-      <div className="relative overflow-hidden bg-blue-700 rounded-2xl px-6 py-5 text-white">
-        <div className="absolute -top-8 -right-8 w-36 h-36 bg-blue-600 rounded-full opacity-50 pointer-events-none" />
-        <div className="absolute -bottom-6 left-1/2 w-28 h-28 bg-green-500 rounded-full opacity-10 pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl px-6 py-5 text-gray-900" style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)' }}>
+        <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full opacity-30 pointer-events-none" style={{ background: '#B7791F' }} />
+        <div className="absolute -bottom-6 left-1/2 w-28 h-28 rounded-full opacity-10 pointer-events-none" style={{ background: '#D71920' }} />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold tracking-widest uppercase text-blue-200 mb-1">Good morning</p>
+            <p className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: '#7A4F00' }}>Good morning</p>
             <h2 className="text-[20px] font-extrabold">Officer Inès Uwimana</h2>
-            <p className="text-[13px] text-blue-200 mt-0.5">Gasabo Police Station · Badge #RPS-0042</p>
+            <p className="text-[13px] mt-0.5" style={{ color: '#7A4F00' }}>Gasabo Police Station · Badge #RPS-0042</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => onNav("cases")} className="flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 font-bold text-[13px] rounded-xl hover:bg-blue-50 transition-colors">
+            <button onClick={() => onNav("cases")} className="flex items-center gap-2 px-4 py-2.5 font-bold text-[13px] rounded-xl transition-colors" style={{ background: 'rgba(255,255,255,0.9)', color: '#B7791F' }}>
               <FolderOpen className="w-4 h-4" /> My Cases
             </button>
-            <button onClick={() => onNav("map")} className="flex items-center gap-2 px-4 py-2.5 bg-white/10 border border-white/30 text-white font-bold text-[13px] rounded-xl hover:bg-white/20 transition-colors">
+            <button onClick={() => onNav("map")} className="flex items-center gap-2 px-4 py-2.5 border font-bold text-[13px] rounded-xl transition-colors" style={{ background: 'rgba(0,0,0,0.12)', borderColor: 'rgba(0,0,0,0.2)', color: '#111827' }}>
               <MapPin className="w-4 h-4" /> Live Map
             </button>
           </div>
@@ -158,11 +161,11 @@ function DashboardView({ onNav, cases, stats, loading }) {
         <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <p className="font-extrabold text-slate-800">Recent Cases</p>
-            <button onClick={() => onNav("cases")} className="text-[12px] font-semibold text-blue-600">View all →</button>
+            <button onClick={() => onNav("cases")} className="text-[12px] font-semibold text-yellow-700">View all →</button>
           </div>
           <div className="space-y-2">
             {cases.slice(0,4).map(c => (
-              <div key={c.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-slate-50 ${STATUS_ROW_BG[c.status]||""}`}>
+              <div key={c.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-[var(--simba-bg-main)] ${STATUS_ROW_BG[c.status]||""}`}>
                 <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_CONFIG[c.status]?.dot || "bg-slate-400"}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-bold text-slate-800 truncate">{c.child} <span className="text-slate-400 font-normal">· age {c.age}</span></p>
@@ -179,8 +182,8 @@ function DashboardView({ onNav, cases, stats, loading }) {
           <p className="font-extrabold text-slate-800 mb-4">Recent Alerts</p>
           <div className="space-y-3">
             {ALERTS.map((a, i) => (
-              <div key={i} className="flex gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${a.type==="urgent"?"bg-red-500":a.type==="alert"?"bg-amber-500":"bg-blue-500"}`} />
+              <div key={i} className="flex gap-3 p-3 bg-[var(--simba-bg-main)] rounded-xl">
+                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${a.type==="urgent"?"bg-red-500":a.type==="alert"?"bg-amber-500":"bg-amber-400"}`} />
                 <div>
                   <p className="text-[12px] text-slate-700 leading-relaxed">{a.msg}</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">{a.time}</p>
@@ -195,7 +198,7 @@ function DashboardView({ onNav, cases, stats, loading }) {
       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <p className="font-extrabold text-slate-800">Incident Locations — Gasabo District</p>
-          <button onClick={() => onNav("map")} className="text-[12px] font-semibold text-blue-600">Full map →</button>
+          <button onClick={() => onNav("map")} className="text-[12px] font-semibold text-yellow-700">Full map →</button>
         </div>
         <IncidentMapView mini />
       </div>
@@ -219,7 +222,7 @@ function CasesView({ cases, onStatusUpdate }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by child name or case ID…"
-            className="w-full pl-9 pr-4 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-blue-400 bg-white" />
+            className="w-full pl-9 pr-4 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-yellow-400 bg-white" />
         </div>
         <select value={filter} onChange={e=>setFilter(e.target.value)}
           className="px-3 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none bg-white">
@@ -233,7 +236,7 @@ function CasesView({ cases, onStatusUpdate }) {
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${c.type==="Missing"?"bg-blue-50 text-blue-700 border-blue-200":"bg-red-50 text-red-700 border-red-200"}`}>{c.type}</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${c.type==="Missing"?"bg-amber-50 text-amber-700 border-amber-200":"bg-red-50 text-red-700 border-red-200"}`}>{c.type}</span>
                   <span className="font-mono text-[11px] text-slate-400">{c.id}</span>
                 </div>
                 <h3 className="text-[15px] font-extrabold text-slate-900">{c.child} <span className="text-slate-400 text-[13px] font-normal">· age {c.age}</span></h3>
@@ -263,11 +266,11 @@ function MissingView({ cases }) {
       <div className="grid gap-4">
         {missing.map(c => (
           <div key={c.id} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-            <div className={`h-1.5 w-full ${c.status==="urgent"?"bg-red-500":c.status==="resolved"?"bg-green-500":"bg-blue-500"}`} />
+            <div className={`h-1.5 w-full ${c.status==="urgent"?"bg-red-500":c.status==="resolved"?"bg-green-500":"bg-amber-400"}`} />
             <div className="p-5">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
-                  <User className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <User className="w-6 h-6 text-amber-600" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -275,7 +278,7 @@ function MissingView({ cases }) {
                     <StatusBadge status={c.status} />
                   </div>
                   <p className="text-[12px] text-slate-500">Age {c.age} · Last seen: <span className="font-semibold text-slate-700">{c.district}</span> · {c.date}</p>
-                  <p className="font-mono text-[11px] text-blue-600 mt-0.5">{c.id}</p>
+                  <p className="font-mono text-[11px] text-yellow-700 mt-0.5">{c.id}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
@@ -308,13 +311,13 @@ function AbuseView({ cases }) {
             <StatusBadge status={c.status} />
           </div>
           {/* Suspect form */}
-          <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+          <div className="bg-[var(--simba-bg-main)] rounded-xl p-4 space-y-3">
             <p className="text-[12px] font-bold text-slate-600 uppercase tracking-wider">Suspect Details</p>
             <div className="grid sm:grid-cols-2 gap-3">
-              <input placeholder="Suspect name" className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-blue-400 bg-white" />
-              <input placeholder="Relationship to child" className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-blue-400 bg-white" />
+              <input placeholder="Suspect name" className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-yellow-400 bg-white" />
+              <input placeholder="Relationship to child" className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-yellow-400 bg-white" />
             </div>
-            <textarea rows={2} placeholder="Incident description…" className="w-full px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-blue-400 bg-white resize-none" />
+            <textarea rows={2} placeholder="Incident description…" className="w-full px-3 py-2 text-[13px] border border-slate-200 rounded-lg outline-none focus:border-yellow-400 bg-white resize-none" />
             <Btn variant="primary"><Send className="w-3.5 h-3.5" /> Save Suspect Details</Btn>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -331,18 +334,18 @@ function AbuseView({ cases }) {
 function IncidentMapView({ mini = false }) {
   const [hovered, setHovered] = useState(null);
   return (
-    <div className={`relative bg-linear-to-br from-blue-50 to-green-50 rounded-2xl overflow-hidden ${mini ? "h-48" : "h-80"}`}>
+    <div className={`relative rounded-2xl overflow-hidden ${mini ? "h-48" : "h-80"}`} style={{ background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)' }}>
       {/* Grid lines */}
       <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
         {[20,40,60,80].map(v => (
           <g key={v}>
-            <line x1={`${v}%`} y1="0" x2={`${v}%`} y2="100%" stroke="#2563EB" strokeWidth="0.5" />
-            <line x1="0" y1={`${v}%`} x2="100%" y2={`${v}%`} stroke="#2563EB" strokeWidth="0.5" />
+            <line x1={`${v}%`} y1="0" x2={`${v}%`} y2="100%" stroke="#D99A00" strokeWidth="0.5" />
+            <line x1="0" y1={`${v}%`} x2="100%" y2={`${v}%`} stroke="#D99A00" strokeWidth="0.5" />
           </g>
         ))}
       </svg>
       {/* District label */}
-      <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1 text-[11px] font-bold text-blue-700">
+      <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1 text-[11px] font-bold text-yellow-700">
         Gasabo District
       </div>
       {/* Incident pins */}
@@ -350,7 +353,7 @@ function IncidentMapView({ mini = false }) {
         <div key={loc.id} className="absolute" style={{ left:`${loc.x}%`, top:`${loc.y}%`, transform:"translate(-50%,-100%)" }}
           onMouseEnter={() => setHovered(loc)} onMouseLeave={() => setHovered(null)}>
           <div className={`w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center cursor-pointer
-            ${loc.urgent?"bg-red-500":"bg-blue-600"}`}>
+            ${loc.urgent?"bg-red-500":"bg-amber-500"}`}>
             <MapPin className="w-3.5 h-3.5 text-white" />
           </div>
           {hovered?.id === loc.id && !mini && (
@@ -367,7 +370,7 @@ function IncidentMapView({ mini = false }) {
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" /><span className="text-[10px] font-semibold text-slate-700">Urgent</span>
           </div>
           <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600" /><span className="text-[10px] font-semibold text-slate-700">Active</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /><span className="text-[10px] font-semibold text-slate-700">Active</span>
           </div>
         </div>
       )}
@@ -383,8 +386,8 @@ function MapView() {
       <div className="grid sm:grid-cols-2 gap-3">
         {INCIDENT_LOCATIONS.map(loc => (
           <div key={loc.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-sm">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${loc.urgent?"bg-red-100":"bg-blue-100"}`}>
-              <MapPin className={`w-4 h-4 ${loc.urgent?"text-red-600":"text-blue-600"}`} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${loc.urgent?"bg-red-100":"bg-amber-100"}`}>
+              <MapPin className={`w-4 h-4 ${loc.urgent?"text-red-600":"text-amber-600"}`} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-bold text-slate-800 truncate">{loc.name}</p>
@@ -406,12 +409,12 @@ function EvidenceView({ cases }) {
         <div key={c.caseId || c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
+              <p className="font-mono text-[11px] text-yellow-700 font-bold">{c.caseId || c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <StatusBadge status={c.status} />
           </div>
-          <FileUploadWidget caseId={c.caseId || c.id} accentColor="blue" />
+          <FileUploadWidget caseId={c.caseId || c.id} accentColor="amber" />
         </div>
       ))}
       {cases.length === 0 && <p className="text-[12px] text-slate-400">No cases to upload evidence for yet.</p>}
@@ -453,7 +456,7 @@ function CaseNoteCard({ c }) {
     <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
+          <p className="font-mono text-[11px] text-yellow-700 font-bold">{c.caseId || c.id}</p>
           <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
         </div>
         <StatusBadge status={c.status} />
@@ -463,7 +466,7 @@ function CaseNoteCard({ c }) {
       ) : notes.length > 0 ? (
         <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
           {notes.map(n => (
-            <div key={n.id} className="bg-slate-50 rounded-xl px-3 py-2">
+            <div key={n.id} className="bg-[var(--simba-bg-main)] rounded-xl px-3 py-2">
               <p className="text-[12px] font-semibold text-slate-700">{n.comment}</p>
               <p className="text-[10px] text-slate-400 mt-0.5">{n.author_name} · {new Date(n.created_at).toLocaleString()}</p>
             </div>
@@ -474,7 +477,7 @@ function CaseNoteCard({ c }) {
       )}
       <textarea value={text} onChange={e => setText(e.target.value)} rows={2}
         placeholder="Add investigation notes, suspect details, recovery information…"
-        className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-blue-400 resize-none bg-white" />
+        className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-yellow-400 resize-none bg-white" />
       <div className="flex gap-2">
         <Btn variant="primary" size="sm" onClick={handleSave} className={saving ? "opacity-60" : ""}>
           <Send className="w-3.5 h-3.5" />{saving ? "Saving…" : "Save Note"}
@@ -509,8 +512,8 @@ function ReportsView() {
           { title:"Monthly Summary",     sub:"All cases handled this month",    icon:Calendar    },
         ].map(r => (
           <div key={r.title} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
-              <r.icon className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mb-3">
+              <r.icon className="w-5 h-5 text-amber-600" />
             </div>
             <h3 className="text-[14px] font-bold text-slate-800 mb-1">{r.title}</h3>
             <p className="text-[12px] text-slate-500 mb-4">{r.sub}</p>
@@ -533,12 +536,12 @@ function AlertsView() {
         {[...ALERTS, ...ALERTS].map((a, i) => (
           <div key={i} className={`flex gap-3 p-4 rounded-xl border ${a.type==="urgent"?"bg-red-50 border-red-100":"bg-white border-slate-100"} shadow-sm`}>
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-              ${a.type==="urgent"?"bg-red-100":a.type==="alert"?"bg-amber-100":"bg-blue-100"}`}>
+              ${a.type==="urgent"?"bg-red-100":a.type==="alert"?"bg-amber-100":"bg-amber-50"}`}>
               {a.type==="urgent"
                 ? <AlertTriangle className="w-4 h-4 text-red-600" />
                 : a.type==="alert"
                   ? <Bell className="w-4 h-4 text-amber-600" />
-                  : <Bell className="w-4 h-4 text-blue-600" />}
+                  : <Bell className="w-4 h-4 text-amber-500" />}
             </div>
             <div className="flex-1">
               <p className="text-[13px] text-slate-800 font-medium leading-relaxed">{a.msg}</p>
@@ -600,16 +603,16 @@ export default function PoliceDashboard() {
   const cur = NAV.find(n => n.id === active);
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen overflow-hidden font-sans" style={{ backgroundColor: 'var(--simba-bg-main, #FFFDF5)' }}>
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden" onClick={()=>setSidebarOpen(false)} />}
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 xl:w-64 bg-white border-r border-slate-100 flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen?"translate-x-0":"-translate-x-full"}`}>
         <div className="px-5 py-5 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center shadow-sm">
-              <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm" style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)' }}>
+              <Shield className="w-5 h-5 text-gray-900" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="text-[14px] font-extrabold text-blue-700">Childwatch</p>
+              <p className="text-[14px] font-extrabold text-yellow-700">Childwatch</p>
               <p className="text-[10px] text-slate-400 font-medium">Police Portal</p>
             </div>
           </div>
@@ -621,16 +624,17 @@ export default function PoliceDashboard() {
             return (
               <button key={item.id} onClick={()=>{setActive(item.id);setSidebarOpen(false);}}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all
-                  ${isActive?"bg-blue-700 text-white shadow-sm":"text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}>
+                  ${isActive?"text-gray-900 shadow-sm":"text-slate-600 hover:bg-[var(--simba-bg-main)] hover:text-slate-900"}`}
+                  style={isActive ? { background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)' } : {}}>
                 <Icon className="w-4 h-4 shrink-0" />{item.label}
               </button>
             );
           })}
         </nav>
         <div className="px-4 pb-5 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <span className="text-[11px] font-extrabold text-blue-700">IU</span>
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--simba-bg-main)]">
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+              <span className="text-[11px] font-extrabold text-yellow-700">IU</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[12px] font-bold text-slate-800 truncate">Inès Uwimana</p>
@@ -648,9 +652,9 @@ export default function PoliceDashboard() {
             <h1 className="text-[14px] font-extrabold text-slate-800">{cur?.label}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationBell accentColor="blue" />
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-[11px] font-bold text-blue-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "PO"}</span>
+            <NotificationBell accentColor="amber" />
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-yellow-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "PO"}</span>
             </div>
           </div>
         </header>
@@ -666,8 +670,8 @@ export default function PoliceDashboard() {
           ].map(item=>{
             const Icon=item.icon; const isA=active===item.id;
             return <button key={item.id} onClick={()=>setActive(item.id)} className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl">
-              <Icon className={`w-5 h-5 ${isA?"text-blue-700":"text-slate-400"}`}/>
-              <span className={`text-[9px] font-bold ${isA?"text-blue-700":"text-slate-400"}`}>{item.label}</span>
+              <Icon className={`w-5 h-5 ${isA?"text-yellow-600":"text-slate-400"}`}/>
+              <span className={`text-[9px] font-bold ${isA?"text-yellow-600":"text-slate-400"}`}>{item.label}</span>
             </button>;
           })}
         </div>

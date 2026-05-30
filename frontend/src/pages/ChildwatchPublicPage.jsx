@@ -101,11 +101,11 @@ function Nav() {
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <a href="#home" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm group-hover:bg-blue-700 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center shadow-sm group-hover:bg-yellow-600 transition-colors">
               <Shield className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="text-[15px] font-bold text-blue-700 leading-none">Childwatch</p>
+              <p className="text-[15px] font-bold text-yellow-700 leading-none">Childwatch</p>
               <p className="text-[10px] text-slate-400 leading-none mt-0.5 font-medium tracking-wide">
                 Protect · Report · Respond
               </p>
@@ -117,7 +117,7 @@ function Nav() {
               <a
                 key={l.label}
                 href={l.href}
-                className="text-[13px] font-medium text-slate-500 hover:text-blue-700 transition-colors"
+                className="text-[13px] font-medium text-slate-500 hover:text-yellow-700 transition-colors"
               >
                 {l.label}
               </a>
@@ -127,13 +127,13 @@ function Nav() {
           <div className="hidden lg:flex items-center gap-2">
             <Link
               to="/login"
-              className="px-4 py-2 text-[13px] font-semibold text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+              className="px-4 py-2 text-[13px] font-semibold text-yellow-700 rounded-lg hover:bg-yellow-50 transition-colors"
             >
               Login
             </Link>
             <Link
               to="/report"
-              className="px-4 py-2 text-[13px] font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all active:scale-[0.98] shadow-sm"
+              className="px-4 py-2 text-[13px] font-semibold text-white bg-yellow-500 rounded-lg hover:bg-yellow-600 transition-all active:scale-[0.98] shadow-sm"
             >
               Report now
             </Link>
@@ -156,7 +156,7 @@ function Nav() {
           />
           <div className="absolute right-0 top-0 h-full w-72 bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <span className="font-bold text-blue-700 text-[15px]">Childwatch</span>
+              <span className="font-bold text-yellow-700 text-[15px]">Childwatch</span>
               <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-500" />
               </button>
@@ -167,7 +167,7 @@ function Nav() {
                   key={l.label}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium text-slate-700 hover:bg-yellow-50 hover:text-yellow-700 transition-colors"
                 >
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                   {l.label}
@@ -178,14 +178,14 @@ function Nav() {
               <Link
                 to="/login"
                 onClick={() => setOpen(false)}
-                className="block w-full text-center py-3 rounded-xl border border-blue-200 text-blue-700 font-semibold text-[14px] hover:bg-blue-50 transition-colors"
+                className="block w-full text-center py-3 rounded-xl border border-yellow-200 text-yellow-700 font-semibold text-[14px] hover:bg-yellow-50 transition-colors"
               >
                 Login
               </Link>
               <Link
                 to="/report"
                 onClick={() => setOpen(false)}
-                className="block w-full text-center py-3 rounded-xl bg-blue-600 text-white font-semibold text-[14px] hover:bg-blue-700 transition-all active:scale-[0.98]"
+                className="block w-full text-center py-3 rounded-xl bg-yellow-500 text-white font-semibold text-[14px] hover:bg-yellow-600 transition-all active:scale-[0.98]"
               >
                 Report now
               </Link>
@@ -319,7 +319,7 @@ function Hero() {
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <Link
                 to="/report"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-xl shadow-lg transition-all active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-[14px] rounded-xl shadow-lg transition-all active:scale-[0.98]"
               >
                 <FileText className="w-4 h-4" />
                 Report a case
@@ -327,7 +327,7 @@ function Hero() {
               </Link>
               <a
                 href="tel:116"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold text-[14px] rounded-xl transition-all active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 hover:bg-yellow-500 text-white font-semibold text-[14px] rounded-xl transition-all active:scale-[0.98]"
               >
                 <Phone className="w-4 h-4" />
                 Emergency — 116
@@ -400,7 +400,7 @@ function Hero() {
               </div>
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-100 rounded-full px-2.5 py-1">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-yellow-700 bg-green-50 border border-green-100 rounded-full px-2.5 py-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     Case active
                   </span>
@@ -414,10 +414,10 @@ function Hero() {
                 <div className="mb-1.5">
                   <div className="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
                     <span>Response in progress</span>
-                    <span className="text-blue-600">65%</span>
+                    <span className="text-yellow-600">65%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-1.5 bg-blue-600 rounded-full" style={{ width: "65%" }} />
+                    <div className="h-1.5 bg-yellow-500 rounded-full" style={{ width: "65%" }} />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
@@ -515,10 +515,10 @@ function Stats() {
   const c3 = useCounter(30,   1200, visible);
 
   const stats = [
-    { value: `${(c1 / 1000).toFixed(1)}k`, label: "Cases reported",    color: "text-blue-600"  },
-    { value: `${c2}%`,                      label: "Response rate",     color: "text-green-700" },
-    { value: "<2h",                          label: "Avg response time", color: "text-blue-600"  },
-    { value: `${c3}+`,                       label: "Partner agencies",  color: "text-green-700" },
+    { value: `${(c1 / 1000).toFixed(1)}k`, label: "Cases reported",    color: "text-yellow-600"  },
+    { value: `${c2}%`,                      label: "Response rate",     color: "text-yellow-700" },
+    { value: "<2h",                          label: "Avg response time", color: "text-yellow-600"  },
+    { value: `${c3}+`,                       label: "Partner agencies",  color: "text-yellow-700" },
   ];
 
   return (
@@ -538,11 +538,11 @@ function Stats() {
 /* ─── Section wrapper ────────────────────────────────────────────── */
 function Section({ id, label, title, sub, children, alt = false }) {
   return (
-    <section id={id} className={`py-16 sm:py-20 ${alt ? "bg-slate-50/70" : "bg-white"}`}>
+    <section id={id} className={`py-16 sm:py-20 ${alt ? "bg-[var(--simba-bg-main)]/70" : "bg-white"}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-10 sm:mb-12">
           {label && (
-            <p className="text-[11px] font-bold tracking-widest uppercase text-blue-600 mb-2">{label}</p>
+            <p className="text-[11px] font-bold tracking-widest uppercase text-yellow-600 mb-2">{label}</p>
           )}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight mb-3">{title}</h2>
           {sub && <p className="text-[14px] sm:text-[15px] text-slate-500 leading-[1.75] max-w-2xl">{sub}</p>}
@@ -562,8 +562,8 @@ function Audience() {
     { icon: <Star className="w-5 h-5" />,  title: "Social workers",       text: "Support welfare assessments, protection interventions, and medical referrals.",                         accent: "green" },
   ];
   const colors = {
-    blue:  { bg: "bg-blue-50",  text: "text-blue-700"  },
-    green: { bg: "bg-green-50", text: "text-green-700" },
+    blue:  { bg: "bg-yellow-50",  text: "text-yellow-700"  },
+    green: { bg: "bg-green-50", text: "text-yellow-700" },
   };
   return (
     <Section id="about" label="Who it's for" title="Built for communities and institutions"
@@ -596,8 +596,8 @@ function Features() {
     { icon: <FileText className="w-5 h-5" />,   title: "Case tracking",        desc: "Follow your report's progress using a case number or account dashboard.",                             accent: "green" },
   ];
   const colors = {
-    blue:  { icon: "bg-blue-50 text-blue-700",   border: "group-hover:border-blue-200"  },
-    green: { icon: "bg-green-50 text-green-700", border: "group-hover:border-green-200" },
+    blue:  { icon: "bg-yellow-50 text-yellow-700",   border: "group-hover:border-yellow-200"  },
+    green: { icon: "bg-green-50 text-yellow-700", border: "group-hover:border-green-200" },
   };
   return (
     <Section id="features" label="Features" title="Everything you need to report and respond"
@@ -667,7 +667,7 @@ function HowItWorks() {
         {steps.map((s, i) => (
           <div key={s.n} className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0 ${s.color === "blue" ? "bg-blue-600" : "bg-green-700"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0 ${s.color === "blue" ? "bg-yellow-500" : "bg-yellow-500"}`}>
                 {s.n}
               </div>
               {i < steps.length - 1 && <div className="w-px bg-slate-200 flex-1 my-2" />}
@@ -696,7 +696,7 @@ function TrackReport() {
             "Receive updates after verification or response",
             "Submit additional information when needed",
           ].map((item) => (
-            <div key={item} className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <div key={item} className="flex items-start gap-3 p-4 bg-[var(--simba-bg-main)] border border-slate-100 rounded-xl">
               <CheckCircle2 className="w-[18px] h-[18px] text-green-600 shrink-0 mt-0.5" />
               <span className="text-[13px] font-medium text-slate-700">{item}</span>
             </div>
@@ -704,8 +704,8 @@ function TrackReport() {
         </div>
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-7">
           <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Search className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center">
+              <Search className="w-4 h-4 text-yellow-600" />
             </div>
             <h3 className="text-[16px] font-bold text-slate-800">Track a submitted report</h3>
           </div>
@@ -720,7 +720,7 @@ function TrackReport() {
               <input type="text" placeholder="Linked contact information"
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] text-slate-800 placeholder-slate-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all" />
             </div>
-            <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-xl transition-colors active:scale-[0.98] shadow-sm">
+            <button className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-[14px] rounded-xl transition-colors active:scale-[0.98] shadow-sm">
               Track report
             </button>
           </div>
@@ -734,8 +734,8 @@ function TrackReport() {
 function CTABanner() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-      <div className="relative overflow-hidden bg-blue-600 rounded-2xl px-6 sm:px-10 py-10 sm:py-12">
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-500 rounded-full opacity-40 pointer-events-none" />
+      <div className="relative overflow-hidden bg-yellow-500 rounded-2xl px-6 sm:px-10 py-10 sm:py-12">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-yellow-500 rounded-full opacity-40 pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-green-500 rounded-full opacity-20 pointer-events-none" />
         <div className="relative grid sm:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
@@ -749,7 +749,7 @@ function CTABanner() {
           </div>
           <div className="flex flex-col gap-3 shrink-0">
             <Link to="/report"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-blue-700 font-semibold text-[14px] rounded-xl hover:bg-blue-50 transition-all active:scale-[0.98] whitespace-nowrap">
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-yellow-700 font-semibold text-[14px] rounded-xl hover:bg-yellow-50 transition-all active:scale-[0.98] whitespace-nowrap">
               Get started <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="mailto:support@childwatch.org"
@@ -775,7 +775,7 @@ function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
               <span className="font-bold text-white text-[15px]">Childwatch</span>
@@ -826,3 +826,5 @@ export default function App() {
     </div>
   );
 }
+
+

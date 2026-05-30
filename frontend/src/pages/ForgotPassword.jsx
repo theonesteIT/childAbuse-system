@@ -75,11 +75,14 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
+    <div className="min-h-screen py-10 px-4" style={{ backgroundColor: 'var(--simba-bg-main)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 mb-3">
-            <ShieldCheck className="w-6 h-6 text-blue-700" />
+          <div
+            className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
+            style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FFF8E1 100%)', border: '1.5px solid #F3E8C8' }}
+          >
+            <ShieldCheck className="w-6 h-6 text-yellow-600" />
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900">Reset your password</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -88,7 +91,7 @@ export default function ForgotPassword() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <form onSubmit={handleRequestReset} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <form onSubmit={handleRequestReset} className="bg-white border rounded-2xl p-5 shadow-sm space-y-4" style={{ borderColor: '#F3E8C8' }}>
             <h2 className="text-sm font-extrabold text-slate-800">1. Request reset token</h2>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Email or phone</label>
             <div className="relative">
@@ -97,13 +100,16 @@ export default function ForgotPassword() {
                 value={identifier}
                 onChange={(event) => setIdentifier(event.target.value)}
                 placeholder="you@example.com or +250..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
               />
             </div>
             <button
               type="submit"
               disabled={loadingRequest}
-              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-bold"
+              className="w-full py-2.5 rounded-xl disabled:opacity-60 text-sm font-bold transition-all"
+              style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 8px 24px rgba(244,180,0,0.15)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
             >
               {loadingRequest ? "Requesting..." : "Request token"}
             </button>
@@ -111,7 +117,7 @@ export default function ForgotPassword() {
             {requestError && <p className="text-xs text-red-600">{requestError}</p>}
           </form>
 
-          <form onSubmit={handleResetPassword} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <form onSubmit={handleResetPassword} className="bg-white border rounded-2xl p-5 shadow-sm space-y-4" style={{ borderColor: '#F3E8C8' }}>
             <h2 className="text-sm font-extrabold text-slate-800">2. Set new password</h2>
 
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Reset token</label>
@@ -121,7 +127,7 @@ export default function ForgotPassword() {
                 value={token}
                 onChange={(event) => setToken(event.target.value)}
                 placeholder="Paste token"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
               />
             </div>
 
@@ -133,7 +139,7 @@ export default function ForgotPassword() {
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 placeholder="At least 6 characters"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
               />
             </div>
 
@@ -145,14 +151,17 @@ export default function ForgotPassword() {
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="Repeat new password"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={loadingReset}
-              className="w-full py-2.5 rounded-xl bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white text-sm font-bold"
+              className="w-full py-2.5 rounded-xl disabled:opacity-60 text-white text-sm font-bold transition-all"
+              style={{ background: '#D71920' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#B9151B'}
+              onMouseLeave={e => e.currentTarget.style.background = '#D71920'}
             >
               {loadingReset ? "Saving..." : "Reset password"}
             </button>
@@ -163,7 +172,7 @@ export default function ForgotPassword() {
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Remembered your password?{" "}
-          <Link to="/login" className="font-bold text-blue-700 hover:text-blue-900">
+          <Link to="/login" className="font-bold text-yellow-700 hover:text-yellow-900">
             Back to sign in
           </Link>
         </p>

@@ -41,7 +41,7 @@ const roleCards = [
   {
     role: "Public Reporter / Parent",
     icon: UserCircle2,
-    color: "bg-blue-50 text-blue-700 border-blue-100",
+    color: "bg-yellow-50 text-yellow-700 border-blue-100",
     features: [
       "Report missing child",
       "Report abuse anonymously",
@@ -225,7 +225,7 @@ const alerts = [
 
 function StatusBadge({ label }) {
   const styles = {
-    "Under Investigation": "bg-blue-50 text-blue-700 ring-blue-100",
+    "Under Investigation": "bg-yellow-50 text-yellow-700 ring-yellow-100",
     Verified: "bg-emerald-50 text-emerald-700 ring-emerald-100",
     Assigned: "bg-amber-50 text-amber-700 ring-amber-100",
     Escalated: "bg-red-50 text-red-700 ring-red-100",
@@ -243,7 +243,7 @@ function PriorityBadge({ label }) {
   const styles = {
     Urgent: "bg-red-100 text-red-700",
     High: "bg-amber-100 text-amber-700",
-    Medium: "bg-blue-100 text-blue-700",
+    Medium: "bg-blue-100 text-yellow-700",
     Low: "bg-slate-100 text-slate-700",
   };
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${styles[label] || styles.Low}`}>{label}</span>;
@@ -301,7 +301,7 @@ export default function ChildwatchDashboard() {
               }}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition ${
                 active
-                  ? "bg-blue-600 text-white"
+                  ? "bg-yellow-500 text-white"
                   : "text-slate-300 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -363,7 +363,7 @@ export default function ChildwatchDashboard() {
                 <button className="rounded-xl border border-slate-200 p-2 text-slate-600">
                   <Bell className="h-5 w-5" />
                 </button>
-                <button className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm">
+                <button className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white shadow-sm">
                   + New Case
                 </button>
               </div>
@@ -382,7 +382,7 @@ export default function ChildwatchDashboard() {
                         <p className="mt-2 text-2xl font-bold sm:text-3xl">{item.value}</p>
                         <p className="mt-2 text-sm text-slate-500">{item.detail}</p>
                       </div>
-                      <div className="rounded-2xl bg-blue-50 p-3 text-blue-700">
+                      <div className="rounded-2xl bg-yellow-50 p-3 text-yellow-700">
                         <Icon className="h-5 w-5" />
                       </div>
                     </div>
@@ -400,7 +400,7 @@ export default function ChildwatchDashboard() {
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-[var(--simba-bg-main)] px-3 py-2">
                       <Search className="h-4 w-4 text-slate-500" />
                       <input
                         value={search}
@@ -418,7 +418,7 @@ export default function ChildwatchDashboard() {
                 <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
-                      <thead className="bg-slate-50 text-slate-600">
+                      <thead className="bg-[var(--simba-bg-main)] text-slate-600">
                         <tr>
                           <th className="px-4 py-3 font-semibold">Case ID</th>
                           <th className="px-4 py-3 font-semibold">Child Name</th>
@@ -431,8 +431,8 @@ export default function ChildwatchDashboard() {
                       </thead>
                       <tbody className="divide-y divide-slate-200 bg-white">
                         {filteredCases.map((item) => (
-                          <tr key={item.id} className="hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-blue-700">{item.id}</td>
+                          <tr key={item.id} className="hover:bg-[var(--simba-bg-main)]">
+                            <td className="px-4 py-3 font-medium text-yellow-700">{item.id}</td>
                             <td className="px-4 py-3">{item.child}</td>
                             <td className="px-4 py-3">{item.type}</td>
                             <td className="px-4 py-3">{item.district}</td>
@@ -516,7 +516,7 @@ export default function ChildwatchDashboard() {
                   <h2 className="text-xl font-bold">Quick Actions</h2>
                   <p className="text-sm text-slate-500">Fast access to the most important system tasks.</p>
                 </div>
-                <button className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
+                <button className="inline-flex items-center gap-2 rounded-2xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white">
                   View All Modules <ArrowUpRight className="h-4 w-4" />
                 </button>
               </div>
@@ -527,9 +527,9 @@ export default function ChildwatchDashboard() {
                   return (
                     <button
                       key={action.title}
-                      className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
+                      className="rounded-3xl border border-slate-200 bg-[var(--simba-bg-main)] p-5 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
                     >
-                      <div className="rounded-2xl bg-blue-50 p-3 w-fit text-blue-700">
+                      <div className="rounded-2xl bg-yellow-50 p-3 w-fit text-yellow-700">
                         <Icon className="h-5 w-5" />
                       </div>
                       <h3 className="mt-4 font-bold">{action.title}</h3>
@@ -558,7 +558,7 @@ export default function ChildwatchDashboard() {
                       <ul className="mt-4 space-y-2 text-sm text-slate-600">
                         {item.features.map((feature) => (
                           <li key={feature} className="flex items-start gap-2">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
                             <span>{feature}</span>
                           </li>
                         ))}
@@ -586,11 +586,11 @@ export default function ChildwatchDashboard() {
                     ["Neglect", "18%"],
                     ["Trafficking", "9%"],
                   ].map(([label, value]) => (
-                    <div key={label} className="rounded-2xl bg-slate-50 p-4">
+                    <div key={label} className="rounded-2xl bg-[var(--simba-bg-main)] p-4">
                       <p className="text-sm text-slate-500">{label}</p>
                       <p className="mt-2 text-2xl font-bold">{value}</p>
                       <div className="mt-3 h-2 rounded-full bg-slate-200">
-                        <div className="h-2 rounded-full bg-blue-600" style={{ width: value }} />
+                        <div className="h-2 rounded-full bg-yellow-500" style={{ width: value }} />
                       </div>
                     </div>
                   ))}
@@ -625,3 +625,4 @@ export default function ChildwatchDashboard() {
     </div>
   );
 }
+

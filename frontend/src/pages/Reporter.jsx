@@ -113,9 +113,9 @@ function normalizeNotification(item) {
 
 const STATUS_STYLES = {
   submitted:           { bg:"bg-slate-100",  text:"text-slate-600",  dot:"bg-slate-400"  },
-  verified:            { bg:"bg-blue-50",    text:"text-blue-700",   dot:"bg-blue-500"   },
+  verified:            { bg:"bg-yellow-50",    text:"text-yellow-700",   dot:"bg-yellow-500"   },
   "under-investigation":{ bg:"bg-amber-50",  text:"text-amber-700",  dot:"bg-amber-500"  },
-  resolved:            { bg:"bg-green-50",   text:"text-green-700",  dot:"bg-green-500"  },
+  resolved:            { bg:"bg-green-50",   text:"text-yellow-700",  dot:"bg-green-500"  },
 };
 
 const NAV_ITEMS = [
@@ -134,11 +134,11 @@ const NAV_ITEMS = [
 
 function Badge({ children, color = "blue" }) {
   const map = {
-    blue:  "bg-blue-50 text-blue-700 border-blue-200",
-    green: "bg-green-50 text-green-700 border-green-200",
+    blue:  "bg-yellow-50 text-yellow-700 border-yellow-200",
+    green: "bg-green-50 text-yellow-700 border-green-200",
     amber: "bg-amber-50 text-amber-700 border-amber-200",
     red:   "bg-red-50 text-red-700 border-red-200",
-    slate: "bg-slate-50 text-slate-600 border-slate-200",
+    slate: "bg-[var(--simba-bg-main)] text-slate-600 border-slate-200",
   };
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${map[color]}`}>{children}</span>;
 }
@@ -186,8 +186,8 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="relative overflow-hidden bg-blue-600 rounded-2xl p-6 text-white">
-        <div className="absolute -top-10 -right-10 w-36 h-36 bg-blue-500 rounded-full opacity-50 pointer-events-none" />
+      <div className="relative overflow-hidden bg-yellow-500 rounded-2xl p-6 text-white">
+        <div className="absolute -top-10 -right-10 w-36 h-36 bg-yellow-500 rounded-full opacity-50 pointer-events-none" />
         <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-green-500 rounded-full opacity-20 pointer-events-none" />
         <div className="relative z-10">
           <p className="text-[11px] font-bold tracking-widest uppercase text-blue-200 mb-1">Welcome back</p>
@@ -202,7 +202,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button onClick={() => onNav("report")}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-bold text-[13px] rounded-xl hover:bg-blue-50 transition-colors">
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-yellow-700 font-bold text-[13px] rounded-xl hover:bg-yellow-50 transition-colors">
               <Plus className="w-4 h-4" /> New Report
             </button>
             <button onClick={() => onNav("emergency")}
@@ -217,7 +217,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
       <div className="grid grid-cols-3 gap-3">
         {stats.map(s => {
           const colors = {
-            blue:  "bg-blue-50 text-blue-600",
+            blue:  "bg-yellow-50 text-yellow-600",
             amber: "bg-amber-50 text-amber-600",
             green: "bg-green-50 text-green-600",
           };
@@ -237,7 +237,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <p className="font-extrabold text-slate-800">Recent Reports</p>
-          <button onClick={() => onNav("my-reports")} className="text-[12px] font-semibold text-blue-600 hover:text-blue-800">
+          <button onClick={() => onNav("my-reports")} className="text-[12px] font-semibold text-yellow-600 hover:text-blue-800">
             View all →
           </button>
         </div>
@@ -245,7 +245,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
           {myReports.slice(0, 3).map(r => {
             const s = STATUS_STYLES[r.status] || STATUS_STYLES.submitted;
             return (
-              <div key={r.caseId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={r.caseId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--simba-bg-main)] transition-colors cursor-pointer"
                 onClick={() => onNav("my-reports")}>
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.dot}`} />
                 <div className="flex-1 min-w-0">
@@ -267,11 +267,11 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
       {/* Quick tip */}
       <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex gap-3">
         <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-          <Info className="w-4 h-4 text-green-700" />
+          <Info className="w-4 h-4 text-yellow-700" />
         </div>
         <div>
-          <p className="text-[13px] font-bold text-green-800 mb-0.5">Tip of the day</p>
-          <p className="text-[12px] text-green-700 leading-relaxed">
+          <p className="text-[13px] font-bold text-yellow-800 mb-0.5">Tip of the day</p>
+          <p className="text-[12px] text-yellow-700 leading-relaxed">
             Always note the child's last seen location, clothing color, and exact time when filing a missing child report.
           </p>
         </div>
@@ -325,12 +325,12 @@ function ReportSection({ onReportCreated }) {
       </div>
       <h2 className="text-[20px] font-extrabold text-slate-900">Report Submitted!</h2>
       <p className="text-[14px] text-slate-500 max-w-sm">Your case has been created. You will receive updates as authorities respond. Save your case ID below.</p>
-      <div className="bg-blue-50 border border-blue-200 rounded-xl px-6 py-3 text-center">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-6 py-3 text-center">
         <p className="text-[11px] text-blue-500 font-bold uppercase tracking-wider mb-1">Your Case ID</p>
-        <p className="text-[22px] font-extrabold text-blue-700 font-mono">{submittedCaseId}</p>
+        <p className="text-[22px] font-extrabold text-yellow-700 font-mono">{submittedCaseId}</p>
       </div>
       <button onClick={() => { setSubmittedCaseId(""); setForm({childName:"",age:"",gender:"",location:"",description:""}); }}
-        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14px] rounded-xl transition-colors">
+        className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-[14px] rounded-xl transition-colors">
         Submit Another Report
       </button>
     </div>
@@ -344,17 +344,17 @@ function ReportSection({ onReportCreated }) {
           <button key={t} onClick={() => setType(t)}
             className={`flex-1 py-3 rounded-xl text-[13px] font-bold border transition-all
               ${type===t
-                ? t==="Missing" ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-red-600 text-white border-red-600 shadow-sm"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+                ? t==="Missing" ? "bg-yellow-500 text-white border-yellow-600 shadow-sm" : "bg-red-600 text-white border-red-600 shadow-sm"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
             {t === "Missing" ? "🔍 Missing Child" : "🚨 Report Abuse"}
           </button>
         ))}
       </div>
 
       {/* Anonymous toggle */}
-      <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+      <div className="flex items-center gap-3 p-3 bg-[var(--simba-bg-main)] border border-slate-100 rounded-xl">
         <button onClick={() => setAnon(!anon)}
-          className={`w-8 h-4 rounded-full transition-all relative shrink-0 ${anon?"bg-blue-600":"bg-slate-300"}`}>
+          className={`w-8 h-4 rounded-full transition-all relative shrink-0 ${anon?"bg-yellow-500":"bg-slate-300"}`}>
           <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${anon?"right-0.5":"left-0.5"}`} />
         </button>
         <div>
@@ -398,7 +398,7 @@ function ReportSection({ onReportCreated }) {
 
         <button onClick={handleSubmit}
           disabled={submitting}
-          className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-700
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-yellow-500 hover:bg-yellow-600
             disabled:opacity-60 text-white font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]">
           <Send className="w-4 h-4" /> {submitting ? "Submitting..." : "Submit Report"}
         </button>
@@ -417,7 +417,7 @@ function MyReportsSection({ myReports, isLoading, error }) {
         {["All","under-investigation","verified","resolved"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all
-              ${filter===f?"bg-blue-600 text-white border-blue-600":"bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+              ${filter===f?"bg-yellow-500 text-white border-yellow-600":"bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
             {f==="All"?"All":f.replace("-"," ")}
           </button>
         ))}
@@ -448,21 +448,21 @@ function MyReportsSection({ myReports, isLoading, error }) {
                 {TIMELINE_STEPS.map((st, i) => (
                   <div key={st} className="flex items-center flex-1">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold
-                      ${i <= step ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"}`}>
+                      ${i <= step ? "bg-yellow-500 text-white" : "bg-slate-200 text-slate-400"}`}>
                       {i < step ? "✓" : i+1}
                     </div>
                     {i < TIMELINE_STEPS.length-1 && (
-                      <div className={`flex-1 h-0.5 mx-0.5 ${i < step?"bg-blue-600":"bg-slate-200"}`} />
+                      <div className={`flex-1 h-0.5 mx-0.5 ${i < step?"bg-yellow-500":"bg-slate-200"}`} />
                     )}
                   </div>
                 ))}
               </div>
               <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-[12px] font-semibold text-slate-700 hover:bg-[var(--simba-bg-main)] transition-colors">
                   <Eye className="w-3.5 h-3.5" /> View
                 </button>
                 {r.status === "submitted" && (
-                  <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-blue-200 bg-blue-50 text-[12px] font-semibold text-blue-700 hover:bg-blue-100 transition-colors">
+                  <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-yellow-200 bg-yellow-50 text-[12px] font-semibold text-yellow-700 hover:bg-blue-100 transition-colors">
                     <Edit2 className="w-3.5 h-3.5" /> Edit
                   </button>
                 )}
@@ -507,7 +507,7 @@ function TrackSection() {
             className="w-full pl-10 pr-4 py-3 text-[14px] border border-slate-200 bg-white rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 placeholder-slate-400 font-mono" />
         </div>
         <button onClick={handleTrack} disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14px] rounded-xl transition-colors">
+          className="w-full flex items-center justify-center gap-2 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-[14px] rounded-xl transition-colors">
           <Search className="w-4 h-4" /> {loading ? "Tracking..." : "Track Case"}
         </button>
         {error && <p className="text-[12px] text-red-500">{error}</p>}
@@ -517,14 +517,14 @@ function TrackSection() {
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-mono text-[12px] text-blue-600 font-bold mb-1">{result.caseId}</p>
+              <p className="font-mono text-[12px] text-yellow-600 font-bold mb-1">{result.caseId}</p>
               <h3 className="text-[16px] font-extrabold text-slate-900">{result.child}</h3>
               <p className="text-[12px] text-slate-400">{result.district} · {formatDateDisplay(result.createdAt)}</p>
             </div>
             <Badge color={result.type==="Missing"?"blue":"red"}>{result.type}</Badge>
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
+          <div className="bg-yellow-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
             <Building2Icon />
             <div>
               <p className="text-[11px] text-blue-500 font-bold uppercase tracking-wider">Assigned to</p>
@@ -540,7 +540,7 @@ function TrackSection() {
                 <div key={u.step} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0
-                      ${u.done ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"}`}>
+                      ${u.done ? "bg-yellow-500 text-white" : "bg-slate-200 text-slate-400"}`}>
                       {u.done ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-3.5 h-3.5" />}
                     </div>
                     {i < result.updates.length-1 && <div className={`w-px flex-1 my-1 ${u.done?"bg-blue-200":"bg-slate-200"}`} />}
@@ -583,18 +583,18 @@ function NotificationsSection({
 }) {
   const unread = notifications.filter((n) => !n.read).length;
   const TYPE_ICON = {
-    update:   <RefreshCw className="w-4 h-4 text-blue-600" />,
+    update:   <RefreshCw className="w-4 h-4 text-yellow-600" />,
     verified: <CheckCircle2 className="w-4 h-4 text-green-600" />,
     note:     <MessageCircle className="w-4 h-4 text-amber-600" />,
     resolved: <Star className="w-4 h-4 text-green-600" />,
   };
-  const TYPE_BG = { update:"bg-blue-50", verified:"bg-green-50", note:"bg-amber-50", resolved:"bg-green-50" };
+  const TYPE_BG = { update:"bg-yellow-50", verified:"bg-green-50", note:"bg-amber-50", resolved:"bg-green-50" };
   return (
     <SectionWrap title="Notifications" sub={`${unread} unread messages`}>
       <div className="flex items-center justify-between mb-1">
         <div />
         <button onClick={onMarkAllRead}
-          className="text-[12px] font-semibold text-blue-600 hover:text-blue-800">Mark all read</button>
+          className="text-[12px] font-semibold text-yellow-600 hover:text-blue-800">Mark all read</button>
       </div>
       {loading && <p className="text-[12px] text-slate-500">Loading notifications...</p>}
       {error && <p className="text-[12px] text-red-500">{error}</p>}
@@ -602,7 +602,7 @@ function NotificationsSection({
         {notifications.map(n => (
           <div key={n.id}
             className={`flex gap-3 p-4 rounded-xl border transition-colors cursor-pointer
-              ${n.read ? "bg-white border-slate-100" : "bg-blue-50/50 border-blue-100"}`}
+              ${n.read ? "bg-white border-slate-100" : "bg-yellow-50/50 border-blue-100"}`}
             onClick={() => onMarkRead(n.id)}>
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${TYPE_BG[n.type]}`}>
               {TYPE_ICON[n.type] || TYPE_ICON.update}
@@ -611,7 +611,7 @@ function NotificationsSection({
               <p className={`text-[13px] leading-relaxed ${n.read?"text-slate-600":"text-slate-800 font-semibold"}`}>{n.msg}</p>
               <p className="text-[11px] text-slate-400 mt-1">{n.time}</p>
             </div>
-            {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+            {!n.read && <div className="w-2 h-2 rounded-full bg-yellow-500 shrink-0 mt-1.5" />}
           </div>
         ))}
         {!loading && !error && notifications.length === 0 && (
@@ -637,7 +637,7 @@ function EmergencySection() {
         {sent ? (
           <div className="bg-green-100 border border-green-300 rounded-xl p-4">
             <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
-            <p className="text-[14px] font-bold text-green-800">Alert Sent! Authorities are on the way.</p>
+            <p className="text-[14px] font-bold text-yellow-800">Alert Sent! Authorities are on the way.</p>
           </div>
         ) : (
           <button onClick={() => setSent(true)}
@@ -651,7 +651,7 @@ function EmergencySection() {
         <a href="tel:+250785555000"
           className="flex flex-col items-center gap-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <Phone className="w-6 h-6 text-green-700" />
+            <Phone className="w-6 h-6 text-yellow-700" />
           </div>
           <p className="text-[13px] font-bold text-slate-800">Call Hotline</p>
           <p className="text-[11px] text-slate-400">+250 785 555 000</p>
@@ -659,7 +659,7 @@ function EmergencySection() {
         <button onClick={() => {}}
           className="flex flex-col items-center gap-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <Zap className="w-6 h-6 text-blue-700" />
+            <Zap className="w-6 h-6 text-yellow-700" />
           </div>
           <p className="text-[13px] font-bold text-slate-800">Quick Report</p>
           <p className="text-[11px] text-slate-400">Skip long forms</p>
@@ -675,11 +675,11 @@ function EvidenceSection({ myReports }) {
       <div className="space-y-3">
         {myReports.map(r => (
           <div key={r.caseId} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-            <p className="text-[12px] font-mono text-blue-600 font-bold mb-0.5">{r.caseId}</p>
+            <p className="text-[12px] font-mono text-yellow-600 font-bold mb-0.5">{r.caseId}</p>
             <p className="text-[14px] font-bold text-slate-800 mb-3">{r.child}</p>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon:<Image className="w-5 h-5" />, label:"Photo",    color:"bg-blue-50 text-blue-600"  },
+                { icon:<Image className="w-5 h-5" />, label:"Photo",    color:"bg-yellow-50 text-yellow-600"  },
                 { icon:<File className="w-5 h-5" />,  label:"Document", color:"bg-green-50 text-green-600"},
                 { icon:<Mic className="w-5 h-5" />,   label:"Audio",    color:"bg-amber-50 text-amber-600"},
               ].map(item => (
@@ -716,7 +716,7 @@ function AwarenessSection() {
           </div>
         ))}
       </div>
-      <div className="bg-blue-600 rounded-2xl p-5 text-white text-center">
+      <div className="bg-yellow-500 rounded-2xl p-5 text-white text-center">
         <Heart className="w-8 h-8 mx-auto mb-2 text-blue-200" />
         <p className="font-extrabold text-[16px] mb-1">Every report matters</p>
         <p className="text-[13px] text-blue-100">Together we can protect every child in Rwanda.</p>
@@ -756,7 +756,7 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
   return (
     <SectionWrap title="My Profile" sub="Manage your account and preferences">
       {isProfileLoading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-[12px] text-blue-700 font-medium">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 text-[12px] text-yellow-700 font-medium">
           Loading your account details...
         </div>
       )}
@@ -768,7 +768,7 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
       {/* Avatar */}
       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-extrabold text-blue-700">{initials || "RP"}</div>
+          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-extrabold text-yellow-700">{initials || "RP"}</div>
           <div>
             <p className="text-[16px] font-extrabold text-slate-900">{profile.name}</p>
             <p className="text-[12px] text-slate-400">{formatRoleLabel(profile.role)} · {profile.district}</p>
@@ -790,11 +790,11 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
             ))}
             <div className="flex gap-3">
               <button onClick={() => setEdit(false)}
-                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-slate-50">
+                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-[var(--simba-bg-main)]">
                 Cancel
               </button>
               <button onClick={() => setEdit(false)}
-                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-[13px] font-bold text-white">
+                className="flex-1 py-2.5 bg-yellow-500 hover:bg-yellow-600 rounded-xl text-[13px] font-bold text-white">
                 Save Changes
               </button>
             </div>
@@ -808,7 +808,7 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
               </div>
             ))}
             <button onClick={() => setEdit(true)}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[13px] rounded-xl transition-colors">
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 border border-yellow-200 bg-yellow-50 hover:bg-blue-100 text-yellow-700 font-semibold text-[13px] rounded-xl transition-colors">
               <Edit2 className="w-3.5 h-3.5" /> Edit Profile
             </button>
           </>
@@ -825,7 +825,7 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
           {LANGS.map(l => (
             <button key={l} onClick={() => setLang(l)}
               className={`py-2 rounded-lg text-[12px] font-semibold border transition-all
-                ${lang===l?"bg-blue-600 text-white border-blue-600":"bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+                ${lang===l?"bg-yellow-500 text-white border-yellow-600":"bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
               {l}
             </button>
           ))}
@@ -835,7 +835,7 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
       {/* Security */}
       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
         <p className="font-bold text-slate-800 text-[14px] mb-3">Security</p>
-        <button className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors text-left">
+        <button className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--simba-bg-main)] hover:bg-slate-100 transition-colors text-left">
           <Lock className="w-4 h-4 text-slate-500" />
           <span className="text-[13px] font-semibold text-slate-700">Change Password</span>
           <ChevronRight className="w-4 h-4 text-slate-400 ml-auto" />
@@ -994,7 +994,7 @@ export default function Reporter() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-[var(--simba-bg-main)] overflow-hidden font-sans">
 
       {/* ── Sidebar (desktop) ── */}
       <>
@@ -1007,11 +1007,11 @@ export default function Reporter() {
 
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-green-700 flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center shadow-sm">
                 <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
               <div>
-                <p className="text-[14px] font-extrabold text-green-700">Childwatch</p>
+                <p className="text-[14px] font-extrabold text-yellow-700">Childwatch</p>
                 <p className="text-[10px] text-slate-400 font-medium">Reporter Portal</p>
               </div>
             </div>
@@ -1025,8 +1025,8 @@ export default function Reporter() {
                 <button key={item.id} onClick={() => { setActive(item.id); setSidebarOpen(false); }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all relative
                     ${isActive
-                      ? "bg-green-700 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}>
+                      ? "bg-yellow-500 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-[var(--simba-bg-main)] hover:text-slate-900"}`}>
                   <Icon className="w-4 h-4 shrink-0" />
                   {item.label}
                   {item.id==="notifications" && unreadCount>0 && (
@@ -1047,9 +1047,9 @@ export default function Reporter() {
           </nav>
 
           <div className="px-4 pb-5 pt-3 border-t border-slate-100">
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--simba-bg-main)]">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <span className="text-[11px] font-bold text-green-700">{initials}</span>
+                <span className="text-[11px] font-bold text-yellow-700">{initials}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-bold text-slate-800 truncate">{displayName}</p>
@@ -1113,8 +1113,8 @@ export default function Reporter() {
             return (
               <button key={item.id} onClick={() => setActive(item.id)}
                 className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl relative">
-                <Icon className={`w-5 h-5 ${isActive?"text-green-700":"text-slate-400"}`} />
-                <span className={`text-[9px] font-bold ${isActive?"text-green-700":"text-slate-400"}`}>{item.label}</span>
+                <Icon className={`w-5 h-5 ${isActive?"text-yellow-700":"text-slate-400"}`} />
+                <span className={`text-[9px] font-bold ${isActive?"text-yellow-700":"text-slate-400"}`}>{item.label}</span>
                 {item.id==="notifications" && unreadCount>0 && (
                   <span className="absolute top-0.5 right-1 w-2 h-2 bg-red-500 rounded-full" />
                 )}
@@ -1126,3 +1126,4 @@ export default function Reporter() {
     </div>
   );
 }
+
