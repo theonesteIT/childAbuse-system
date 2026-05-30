@@ -35,3 +35,20 @@ export function getAuthProfile() {
     return null;
   }
 }
+
+// Returns the sub-role from the user profile ("Police", "Hospital", "Social Worker", etc.)
+export function getAuthSubRole() {
+  const profile = getAuthProfile();
+  return profile?.role ?? null;
+}
+
+// Returns the correct dashboard path based on account type + sub-role
+export function getDashboardRoute() {
+  const accountType = getAuthRole(); // "admin" | "user"
+  if (accountType === "admin") return "/admin/dashboard";
+  const subRole = getAuthSubRole();
+  if (subRole === "Police")         return "/police/dashboard";
+  if (subRole === "Social Worker")  return "/social/dashboard";
+  if (subRole === "Hospital")       return "/health/dashboard";
+  return "/reporter/dashboard"; // Parent/Reporter or fallback
+}

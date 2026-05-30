@@ -1,5 +1,8 @@
-// SocialWorkerDashboard.jsx — Childwatch Social Worker Panel
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { clearAuthSession, getAuthProfile } from "../utils/authStorage";
+import { getSocialCases, getSocialStats } from "../services/socialApi";
+import NotificationBell from "../components/NotificationBell";
 import {
   LayoutDashboard, FolderOpen, ClipboardList, Heart, Calendar,
   ArrowRightLeft, Bell, Users, AlertTriangle, CheckCircle2,
@@ -8,21 +11,16 @@ import {
   MessageSquare, RefreshCw, Search, BookOpen
 } from "lucide-react";
 
-const STATS = [
-  { label:"Assigned Cases",    value:"18", icon:FolderOpen,   color:"blue"  },
-  { label:"High-Risk Children",value:"5",  icon:AlertTriangle,color:"red"   },
-  { label:"Visits Due Today",  value:"3",  icon:Calendar,     color:"amber" },
-  { label:"Active Abuse Cases",value:"8",  icon:Shield,       color:"red"   },
-  { label:"Referrals Made",    value:"12", icon:ArrowRightLeft,color:"blue" },
-  { label:"Cases Resolved",    value:"4",  icon:CheckCircle2, color:"green" },
-];
-
-const CASES = [
-  { id:"CW-2026-007", child:"Keza Brian",    age:11, type:"Abuse",   risk:"high",   status:"active",     district:"Kicukiro",  nextVisit:"2026-04-23" },
-  { id:"CW-2026-014", child:"Ingabire Diana",age:7,  type:"Neglect", risk:"medium", status:"monitoring", district:"Gasabo",    nextVisit:"2026-04-25" },
-  { id:"CW-2026-018", child:"Nzeyimana Sam", age:14, type:"Abuse",   risk:"high",   status:"active",     district:"Nyarugenge",nextVisit:"2026-04-24" },
-  { id:"CW-2026-022", child:"Umuhoza Grace", age:9,  type:"Neglect", risk:"low",    status:"monitoring", district:"Gasabo",    nextVisit:"2026-04-28" },
-];
+function buildStats(s = {}) {
+  return [
+    { label:"Assigned Cases",     value: String(s.total    ?? 0), icon:FolderOpen,    color:"blue"  },
+    { label:"High-Risk Children", value: String(s.highRisk ?? 0), icon:AlertTriangle, color:"red"   },
+    { label:"Visits Due Today",   value: "—",                     icon:Calendar,     color:"amber" },
+    { label:"Active Abuse Cases", value: String(s.active   ?? 0), icon:Shield,       color:"red"   },
+    { label:"Referrals Made",     value: "—",                     icon:ArrowRightLeft,color:"blue" },
+    { label:"Cases Resolved",     value: String(s.resolved ?? 0), icon:CheckCircle2, color:"green" },
+  ];
+}
 
 const RISK_CONFIG = {
   high:   { bg:"bg-red-50",   text:"text-red-700",   border:"border-red-200",   dot:"bg-red-500"   },
@@ -100,7 +98,7 @@ function CaseCard({ c, showActions=true }) {
   );
 }
 
-function DashboardView({ onNav }) {
+function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden bg-green-800 rounded-2xl px-6 py-5 text-white">
@@ -124,7 +122,7 @@ function DashboardView({ onNav }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {STATS.map(s => <StatCard key={s.label} {...s} />)}
+        {loading ? <p className="text-[12px] text-slate-400 col-span-6">Loading…</p> : stats.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
@@ -133,14 +131,14 @@ function DashboardView({ onNav }) {
             <p className="font-extrabold text-slate-800">High-Risk Cases</p>
             <button onClick={()=>onNav("cases")} className="text-[12px] font-semibold text-green-700">View all →</button>
           </div>
-          {CASES.filter(c=>c.risk==="high").map(c => <CaseCard key={c.id} c={c} />)}
+          {cases.filter(c=>c.risk==="high").map(c => <CaseCard key={c.id} c={c} />)}
         </div>
 
         <div className="space-y-4">
           <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
             <p className="font-extrabold text-slate-800 mb-4">Today's Visits</p>
             <div className="space-y-3">
-              {CASES.slice(0,3).map(c => (
+              {cases.slice(0,3).map(c => (
                 <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                     <Home className="w-4 h-4 text-green-700"/>
@@ -172,12 +170,12 @@ function DashboardView({ onNav }) {
   );
 }
 
-function CasesView() {
+function CasesView({ cases }) {
   const [filter, setFilter] = useState("All");
-  const filtered = CASES.filter(c => filter==="All" || c.risk===filter);
+  const filtered = cases.filter(c => filter==="All" || c.risk===filter);
   return (
     <div className="space-y-5">
-      <SectionTitle title="Assigned Cases" sub={`${CASES.length} child welfare cases`}/>
+      <SectionTitle title="Assigned Cases" sub={`${cases.length} child welfare cases`}/>
       <div className="flex gap-2 flex-wrap">
         {["All","high","medium","low"].map(f=>(
           <button key={f} onClick={()=>setFilter(f)}
@@ -191,12 +189,12 @@ function CasesView() {
   );
 }
 
-function VisitsView() {
+function VisitsView({ cases }) {
   const [notes, setNotes] = useState({});
   return (
     <div className="space-y-5">
       <SectionTitle title="Home Visit Notes" sub="Record observations from field visits"/>
-      {CASES.map(c=>(
+      {cases.map(c=>(
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -231,11 +229,11 @@ function VisitsView() {
   );
 }
 
-function AssessmentView() {
+function AssessmentView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Social Assessments" sub="Document formal child welfare assessments"/>
-      {CASES.slice(0,3).map(c=>(
+      {cases.slice(0,3).map(c=>(
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -260,11 +258,11 @@ function AssessmentView() {
   );
 }
 
-function ReferralsView() {
+function ReferralsView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Case Referrals" sub="Refer cases to police, hospitals, or other agencies"/>
-      {CASES.slice(0,3).map(c=>(
+      {cases.slice(0,3).map(c=>(
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -291,12 +289,12 @@ function ReferralsView() {
   );
 }
 
-function FollowUpView() {
+function FollowUpView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Follow-up Schedule" sub="Manage upcoming child welfare visits"/>
       <div className="space-y-3">
-        {CASES.map((c,i)=>(
+        {cases.map((c,i)=>(
           <div key={c.id} className="flex items-center gap-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
             <div className="w-12 h-12 rounded-2xl bg-green-100 flex flex-col items-center justify-center shrink-0">
               <p className="text-[14px] font-extrabold text-green-700">{c.nextVisit.split("-")[2]}</p>
@@ -341,17 +339,41 @@ function ReportsView() {
 }
 
 export default function SocialWorkerDashboard() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cases, setCases] = useState([]);
+  const [stats, setStats] = useState(buildStats({}));
+  const [loading, setLoading] = useState(true);
+  const profile = getAuthProfile();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const [casesData, statsData] = await Promise.all([getSocialCases(), getSocialStats()]);
+        setCases(casesData.cases || []);
+        setStats(buildStats(statsData.stats || {}));
+      } catch (err) {
+        console.error("Social data load failed:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleLogout = () => { clearAuthSession(); navigate("/login"); };
+
   const SECTIONS = {
-    dashboard: <DashboardView onNav={setActive}/>,
-    cases:     <CasesView/>,
-    visits:    <VisitsView/>,
-    assessment:<AssessmentView/>,
-    referrals: <ReferralsView/>,
-    "follow-up":<FollowUpView/>,
-    reports:   <ReportsView/>,
-    alerts:    <div className="text-slate-500 p-4">Alerts section — no new alerts.</div>,
+    dashboard:   <DashboardView onNav={setActive} cases={cases} stats={stats} loading={loading}/>,
+    cases:       <CasesView cases={cases}/>,
+    visits:      <VisitsView cases={cases}/>,
+    assessment:  <AssessmentView cases={cases}/>,
+    referrals:   <ReferralsView cases={cases}/>,
+    "follow-up": <FollowUpView cases={cases}/>,
+    reports:     <ReportsView/>,
+    alerts:      <div className="text-slate-500 p-4">Alerts section — no new alerts.</div>,
   };
   const cur = NAV.find(n=>n.id===active);
   return (
@@ -377,7 +399,7 @@ export default function SocialWorkerDashboard() {
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-green-700">AM</span></div>
             <div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-slate-800 truncate">Aline Mukamana</p><p className="text-[10px] text-slate-400">Social Worker</p></div>
-            <button className="text-slate-400 hover:text-slate-700"><LogOut className="w-4 h-4"/></button>
+            <button className="text-slate-400 hover:text-slate-700" onClick={handleLogout}><LogOut className="w-4 h-4"/></button>
           </div>
         </div>
       </aside>
@@ -388,8 +410,8 @@ export default function SocialWorkerDashboard() {
             <h1 className="text-[14px] font-extrabold text-slate-800">{cur?.label}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg hover:bg-slate-100"><Bell className="w-5 h-5 text-slate-500"/><span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"/></button>
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><span className="text-[11px] font-bold text-green-700">AM</span></div>
+            <NotificationBell accentColor="green" />
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><span className="text-[11px] font-bold text-green-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "SW"}</span></div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{SECTIONS[active]}</main>

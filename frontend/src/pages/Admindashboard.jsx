@@ -24,6 +24,7 @@ import {
   updateManagedUser,
 } from "../services/adminUsersApi";
 import { getAdminReports, updateAdminReportStatus } from "../services/adminReportsApi";
+import { assignCase, updateCasePriority } from "../services/caseApi";
 
 // ── Mock data ────────────────────────────────────────────────────
 const STATS = [
@@ -189,7 +190,7 @@ function Td({ children, className = "" }) {
 }
 
 // ── Mini bar chart ───────────────────────────────────────────────
-function BarChart({ data, color = "#2563EB" }) {
+function BarChart({ data, color = "#F4B400" }) {
   const max = Math.max(...data);
   return (
     <div className="flex items-end gap-1 h-20 w-full">
@@ -233,7 +234,7 @@ function DonutChart({ segments }) {
           offset += frac;
           return el;
         })}
-        <text x="50" y="54" textAnchor="middle" fontSize="14" fontWeight="700" fill="#1e293b">{total}</text>
+        <text x="50" y="54" textAnchor="middle" fontSize="14" fontWeight="700" fill="#1F2937">{total}</text>
       </svg>
       <div className="space-y-1.5">
         {segments.map((s) => (
@@ -280,8 +281,8 @@ function DashboardSection() {
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <p className="text-[14px] font-extrabold text-slate-800 mb-4">Case Breakdown</p>
           <DonutChart segments={[
-            { value:342, color:"#2563EB", label:"Missing"       },
-            { value:189, color:"#DC2626", label:"Abuse"         },
+            { value:342, color:"#F4B400", label:"Missing"       },
+            { value:189, color:"#D71920", label:"Abuse"         },
             { value:753, color:"#16A34A", label:"Resolved"      },
           ]}/>
         </div>
@@ -660,6 +661,7 @@ function CasesSection() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [reports, setReports] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
@@ -679,6 +681,7 @@ function CasesSection() {
 
   useEffect(() => {
     loadReports();
+    getManagedUsers().then(d => setUsers(d.users || [])).catch(() => {});
   }, [statusFilter, search]);
 
   const handleStatusUpdate = async (reportId, status) => {
@@ -690,6 +693,26 @@ function CasesSection() {
       setError(updateError.message || "Failed to update case status");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handlePriorityUpdate = async (caseId, priority) => {
+    try {
+      await updateCasePriority(caseId, priority);
+      setReports(items => items.map(item => item.caseId === caseId ? { ...item, priority } : item));
+    } catch (err) {
+      setError(err.message || "Failed to update priority");
+    }
+  };
+
+  const handleAssign = async (caseId, userId) => {
+    if (!userId) return;
+    try {
+      await assignCase(caseId, parseInt(userId, 10));
+      const user = users.find(u => String(u.id) === String(userId));
+      setReports(items => items.map(item => item.caseId === caseId ? { ...item, assignedTo: user?.fullName || "Assigned" } : item));
+    } catch (err) {
+      setError(err.message || "Failed to assign case");
     }
   };
 
@@ -720,18 +743,18 @@ function CasesSection() {
         </div>
       )}
       <TableWrap>
-        <thead><tr><Th>Case ID</Th><Th>Type</Th><Th>Child</Th><Th>District</Th><Th>Status</Th><Th>Reporter</Th><Th>Date</Th><Th>Actions</Th></tr></thead>
+        <thead><tr><Th>Case ID</Th><Th>Type</Th><Th>Child</Th><Th>District</Th><Th>Status</Th><Th>Priority</Th><Th>Assigned To</Th><Th>Date</Th><Th>Actions</Th></tr></thead>
         <tbody>
           {loading && (
             <tr>
-              <td className="px-4 py-3 text-slate-700 border-t border-slate-100 text-center" colSpan={8}>
+              <td className="px-4 py-3 text-slate-700 border-t border-slate-100 text-center" colSpan={9}>
                 Loading reports...
               </td>
             </tr>
           )}
           {!loading && reports.length === 0 && (
             <tr>
-              <td className="px-4 py-3 text-slate-700 border-t border-slate-100 text-center" colSpan={8}>
+              <td className="px-4 py-3 text-slate-700 border-t border-slate-100 text-center" colSpan={9}>
                 No reports found
               </td>
             </tr>
@@ -747,7 +770,25 @@ function CasesSection() {
                   {c.status}
                 </span>
               </Td>
-              <Td><span className="text-[12px] text-slate-500">User #{c.reporterId}</span></Td>
+              <Td>
+                <select value={c.priority || "medium"}
+                  onChange={e => handlePriorityUpdate(c.caseId, e.target.value)}
+                  className="px-2 py-1 text-[11px] border border-slate-200 rounded-lg bg-white">
+                  <option value="high">🔴 High</option>
+                  <option value="medium">🟡 Medium</option>
+                  <option value="low">🟢 Low</option>
+                </select>
+              </Td>
+              <Td>
+                <select defaultValue=""
+                  onChange={e => handleAssign(c.caseId, e.target.value)}
+                  className="px-2 py-1 text-[11px] border border-slate-200 rounded-lg bg-white max-w-[130px]">
+                  <option value="">{c.assignedTo || "— Assign —"}</option>
+                  {users.filter(u => u.role !== "Parent/Reporter").map(u => (
+                    <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>
+                  ))}
+                </select>
+              </Td>
               <Td><span className="text-[12px] text-slate-400">{formatDate(c.createdAt)}</span></Td>
               <Td>
                 <div className="flex items-center gap-2">
@@ -758,9 +799,7 @@ function CasesSection() {
                     onChange={(e) => handleStatusUpdate(c.id, e.target.value)}
                   >
                     {["submitted","verified","under-investigation","resolved"].map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
+                      <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
                   {updatingId === c.id && <span className="text-[11px] text-slate-400">Saving...</span>}
@@ -856,7 +895,7 @@ function AnalyticsSection() {
       <div className="grid lg:grid-cols-2 gap-5">
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <p className="font-extrabold text-slate-800 mb-4">Response Time Analysis</p>
-          <BarChart data={[1.2,1.8,1.4,2.1,1.6,1.3,1.9,1.5,1.4,1.1,1.7,1.4]} color="#16A34A" />
+          <BarChart data={[1.2,1.8,1.4,2.1,1.6,1.3,1.9,1.5,1.4,1.1,1.7,1.4]} color="#F4B400" />
           <div className="flex justify-between mt-2">
             {["J","F","M","A","M","J","J","A","S","O","N","D"].map(m=>(
               <span key={m} className="text-[10px] text-slate-400 flex-1 text-center">{m}</span>
@@ -866,10 +905,10 @@ function AnalyticsSection() {
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <p className="font-extrabold text-slate-800 mb-4">Type Distribution</p>
           <DonutChart segments={[
-            {value:342,color:"#2563EB",label:"Missing Children"},
-            {value:189,color:"#DC2626",label:"Abuse Cases"},
+            {value:342,color:"#F4B400",label:"Missing Children"},
+            {value:189,color:"#D71920",label:"Abuse Cases"},
             {value:98, color:"#16A34A",label:"Neglect"},
-            {value:45, color:"#D97706",label:"Trafficking"},
+            {value:45, color:"#F59E0B",label:"Trafficking"},
           ]}/>
         </div>
       </div>

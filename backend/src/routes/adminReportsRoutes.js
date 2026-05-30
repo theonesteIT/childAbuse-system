@@ -28,6 +28,7 @@ function toClientReport(row) {
 }
 
 async function createStatusNotification(userId, reportId, caseId, status) {
+  if (!userId) return;
   const statusLabel = status.replace("-", " ");
   await pool.query(
     `INSERT INTO user_notifications (user_id, report_id, type, message, is_read)

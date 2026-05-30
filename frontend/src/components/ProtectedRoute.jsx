@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { getAuthRole, isAuthenticated } from "../utils/authStorage";
+import { getDashboardRoute, getAuthRole, getAuthSubRole, isAuthenticated } from "../utils/authStorage";
 
 export default function ProtectedRoute({ requiredRole }) {
   if (!isAuthenticated()) {
@@ -7,9 +7,18 @@ export default function ProtectedRoute({ requiredRole }) {
   }
 
   if (requiredRole) {
-    const role = getAuthRole();
-    if (role !== requiredRole) {
-      return <Navigate to={role === "admin" ? "/admin/dashboard" : "/reporter/dashboard"} replace />;
+    const accountType = getAuthRole();   // "admin" | "user"
+    const subRole     = getAuthSubRole(); // "Police" | "Hospital" | "Social Worker" | "Parent/Reporter" | null
+
+    const allowed =
+      requiredRole === "admin"
+        ? accountType === "admin"
+        : requiredRole === "user"
+          ? accountType === "user"
+          : accountType === "user" && subRole === requiredRole;
+
+    if (!allowed) {
+      return <Navigate to={getDashboardRoute()} replace />;
     }
   }
 

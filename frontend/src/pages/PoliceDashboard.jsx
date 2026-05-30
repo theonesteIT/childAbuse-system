@@ -1,7 +1,12 @@
 // PoliceDashboard.jsx — Childwatch Police Officer Panel
 // Stack: React + Tailwind CSS + lucide-react
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { clearAuthSession, getAuthProfile } from "../utils/authStorage";
+import { getPoliceCases, getPoliceStats, updatePoliceCaseStatus } from "../services/policeApi";
+import NotificationBell from "../components/NotificationBell";
+import FileUploadWidget from "../components/FileUploadWidget";
 import {
   LayoutDashboard, FolderOpen, Search, Bell, Shield, AlertTriangle,
   MapPin, Upload, FileText, User, CheckCircle2, Clock, Flag,
@@ -11,23 +16,17 @@ import {
   Navigation, Activity, TrendingUp, Phone, Calendar, Send
 } from "lucide-react";
 
-// ── Mock data ─────────────────────────────────────────────────────
-const STATS = [
-  { label: "Total Assigned",      value: "24",  icon: FolderOpen,    color: "blue",  delta: "cases"    },
-  { label: "New Cases",           value: "3",   icon: Plus,          color: "amber", delta: "today"    },
-  { label: "Under Investigation", value: "11",  icon: Search,        color: "blue",  delta: "active"   },
-  { label: "Urgent",              value: "4",   icon: AlertTriangle, color: "red",   delta: "priority" },
-  { label: "Resolved",            value: "6",   icon: CheckCircle2,  color: "green", delta: "this month"},
-  { label: "Missing Not Found",   value: "7",   icon: Flag,          color: "red",   delta: "open"     },
-];
-
-const CASES = [
-  { id:"CW-2026-001", type:"Missing",  child:"Mutoni Aline",    age:8,  district:"Gasabo",     status:"urgent",          date:"2026-04-20", assigned:"Self", location:[-1.944,30.059] },
-  { id:"CW-2026-007", type:"Abuse",    child:"Keza Brian",      age:11, district:"Kicukiro",   status:"under-investigation", date:"2026-04-19", assigned:"Self", location:[-1.966,30.104] },
-  { id:"CW-2026-012", type:"Missing",  child:"Nshimiye Marc",   age:6,  district:"Gasabo",     status:"new",             date:"2026-04-21", assigned:"Self", location:[-1.932,30.072] },
-  { id:"CW-2026-015", type:"Abuse",    child:"Uwase Clarisse",  age:9,  district:"Nyarugenge", status:"urgent",          date:"2026-04-18", assigned:"Self", location:[-1.955,30.061] },
-  { id:"CW-2026-003", type:"Missing",  child:"Irakoze Ivan",    age:7,  district:"Gasabo",     status:"resolved",        date:"2026-04-17", assigned:"Self", location:[-1.948,30.067] },
-];
+// ── Stat builder from live API data ─────────────────────────────
+function buildStats(s = {}) {
+  return [
+    { label: "Total Assigned",      value: String(s.total ?? 0),              icon: FolderOpen,    color: "blue",  delta: "cases"     },
+    { label: "New Cases",           value: String(s.new ?? 0),                icon: Plus,          color: "amber", delta: "today"     },
+    { label: "Under Investigation", value: String(s.underInvestigation ?? 0), icon: Search,        color: "blue",  delta: "active"    },
+    { label: "Urgent",              value: String(s.new ?? 0),                icon: AlertTriangle, color: "red",   delta: "priority"  },
+    { label: "Resolved",            value: String(s.resolved ?? 0),           icon: CheckCircle2,  color: "green", delta: "this month" },
+    { label: "Missing Not Found",   value: String(s.missingNotFound ?? 0),    icon: Flag,          color: "red",   delta: "open"      },
+  ];
+}
 
 const ALERTS = [
   { msg:"New urgent case assigned: CW-2026-012",      time:"15m ago", type:"urgent"  },
@@ -123,7 +122,7 @@ function Th({ children }) { return <th className="px-4 py-3 text-left text-[10px
 function Td({ children, className="" }) { return <td className={`px-4 py-3 border-t border-slate-100 text-slate-700 ${className}`}>{children}</td>; }
 
 // ── SECTIONS ──────────────────────────────────────────────────────
-function DashboardView({ onNav }) {
+function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
       {/* Hero bar */}
@@ -149,7 +148,9 @@ function DashboardView({ onNav }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {STATS.map(s => <StatCard key={s.label} {...s} />)}
+        {loading
+          ? <p className="text-[12px] text-slate-400 col-span-6">Loading…</p>
+          : stats.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
@@ -160,7 +161,7 @@ function DashboardView({ onNav }) {
             <button onClick={() => onNav("cases")} className="text-[12px] font-semibold text-blue-600">View all →</button>
           </div>
           <div className="space-y-2">
-            {CASES.slice(0,4).map(c => (
+            {cases.slice(0,4).map(c => (
               <div key={c.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-slate-50 ${STATUS_ROW_BG[c.status]||""}`}>
                 <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_CONFIG[c.status]?.dot || "bg-slate-400"}`} />
                 <div className="flex-1 min-w-0">
@@ -202,13 +203,11 @@ function DashboardView({ onNav }) {
   );
 }
 
-function CasesView() {
+function CasesView({ cases, onStatusUpdate }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
-  const [selected, setSelected] = useState(null);
-  const [note, setNote] = useState("");
 
-  const filtered = CASES.filter(c =>
+  const filtered = cases.filter(c =>
     (filter==="All" || c.status===filter) &&
     (c.child.toLowerCase().includes(search.toLowerCase()) || c.id.toLowerCase().includes(search.toLowerCase()))
   );
@@ -256,8 +255,8 @@ function CasesView() {
   );
 }
 
-function MissingView() {
-  const missing = CASES.filter(c => c.type === "Missing");
+function MissingView({ cases }) {
+  const missing = cases;
   return (
     <div className="space-y-5">
       <SectionTitle title="Missing Children Cases" sub="All verified missing child reports assigned to you" />
@@ -293,8 +292,8 @@ function MissingView() {
   );
 }
 
-function AbuseView() {
-  const abuse = CASES.filter(c => c.type === "Abuse");
+function AbuseView({ cases }) {
+  const abuse = cases;
   return (
     <div className="space-y-5">
       <SectionTitle title="Abuse Cases" sub="Abuse reports referred to police for investigation" />
@@ -332,7 +331,7 @@ function AbuseView() {
 function IncidentMapView({ mini = false }) {
   const [hovered, setHovered] = useState(null);
   return (
-    <div className={`relative bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl overflow-hidden ${mini ? "h-48" : "h-80"}`}>
+    <div className={`relative bg-linear-to-br from-blue-50 to-green-50 rounded-2xl overflow-hidden ${mini ? "h-48" : "h-80"}`}>
       {/* Grid lines */}
       <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
         {[20,40,60,80].map(v => (
@@ -399,59 +398,99 @@ function MapView() {
   );
 }
 
-function EvidenceView() {
+function EvidenceView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Upload Investigation Evidence" sub="Add photos, documents or recordings to cases" />
-      {CASES.slice(0,3).map(c => (
-        <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      {cases.slice(0,3).map(c => (
+        <div key={c.caseId || c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <StatusBadge status={c.status} />
           </div>
-          <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-blue-300 transition-colors cursor-pointer">
-            <Upload className="w-7 h-7 text-slate-400 mx-auto mb-2" />
-            <p className="text-[13px] text-slate-600 font-semibold">Drop files or tap to upload</p>
-            <p className="text-[11px] text-slate-400 mt-1">Photos, videos, documents · Max 50 MB</p>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mt-3">
-            {["📷 Photo","🎥 Video","📄 Document"].map(t => (
-              <button key={t} className="py-2 rounded-lg border border-slate-200 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{t}</button>
-            ))}
-          </div>
+          <FileUploadWidget caseId={c.caseId || c.id} accentColor="blue" />
         </div>
       ))}
+      {cases.length === 0 && <p className="text-[12px] text-slate-400">No cases to upload evidence for yet.</p>}
     </div>
   );
 }
 
-function NotesView() {
-  const [notes, setNotes] = useState({ "CW-2026-001":"Child last seen near Kimironko market.", "CW-2026-007":"" });
+function CaseNoteCard({ c }) {
+  const [notes, setNotesList] = useState([]);
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    import("../services/caseApi").then(({ getCaseNotes }) => {
+      getCaseNotes(c.caseId || c.id)
+        .then(d => setNotesList(d.notes || []))
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    });
+  }, [c.caseId, c.id]);
+
+  const handleSave = async () => {
+    if (!text.trim()) return;
+    try {
+      setSaving(true);
+      const { addCaseNote } = await import("../services/caseApi");
+      await addCaseNote(c.caseId || c.id, { comment: text.trim() });
+      setNotesList(prev => [...prev, { id: Date.now(), author_name: "You", comment: text.trim(), created_at: new Date().toISOString() }]);
+      setText("");
+    } catch (err) {
+      console.error("Save note failed:", err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
+          <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
+        </div>
+        <StatusBadge status={c.status} />
+      </div>
+      {loading ? (
+        <p className="text-[12px] text-slate-400">Loading notes…</p>
+      ) : notes.length > 0 ? (
+        <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+          {notes.map(n => (
+            <div key={n.id} className="bg-slate-50 rounded-xl px-3 py-2">
+              <p className="text-[12px] font-semibold text-slate-700">{n.comment}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{n.author_name} · {new Date(n.created_at).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[12px] text-slate-400 italic">No notes yet.</p>
+      )}
+      <textarea value={text} onChange={e => setText(e.target.value)} rows={2}
+        placeholder="Add investigation notes, suspect details, recovery information…"
+        className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-blue-400 resize-none bg-white" />
+      <div className="flex gap-2">
+        <Btn variant="primary" size="sm" onClick={handleSave} className={saving ? "opacity-60" : ""}>
+          <Send className="w-3.5 h-3.5" />{saving ? "Saving…" : "Save Note"}
+        </Btn>
+        <Btn variant="outline" size="sm"><Flag className="w-3.5 h-3.5" />Mark Urgent</Btn>
+      </div>
+    </div>
+  );
+}
+
+function NotesView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Case Notes" sub="Add investigation notes, recovery details, and updates" />
-      {CASES.slice(0,4).map(c => (
-        <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.id}</p>
-              <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
-            </div>
-            <StatusBadge status={c.status} />
-          </div>
-          <textarea value={notes[c.id]||""} onChange={e => setNotes(p=>({...p,[c.id]:e.target.value}))} rows={3}
-            placeholder="Add investigation notes, suspect details, recovery information…"
-            className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-blue-400 resize-none bg-white" />
-          <div className="flex gap-2">
-            <Btn variant="primary" size="sm"><Send className="w-3.5 h-3.5" />Save Note</Btn>
-            <Btn variant="outline" size="sm"><Flag className="w-3.5 h-3.5" />Mark Urgent</Btn>
-            <Btn variant="green" size="sm"><CheckCircle2 className="w-3.5 h-3.5" />Mark Resolved</Btn>
-          </div>
-        </div>
-      ))}
+      {cases.slice(0,4).map(c => <CaseNoteCard key={c.caseId || c.id} c={c} />)}
+      {cases.length === 0 && <p className="text-[12px] text-slate-400">No cases in your district yet.</p>}
     </div>
   );
 }
@@ -514,16 +553,47 @@ function AlertsView() {
 
 // ── Main ─────────────────────────────────────────────────────────
 export default function PoliceDashboard() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cases, setCases] = useState([]);
+  const [stats, setStats] = useState(buildStats({}));
+  const [loading, setLoading] = useState(true);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [casesData, statsData] = await Promise.all([getPoliceCases(), getPoliceStats()]);
+      setCases(casesData.cases || []);
+      setStats(buildStats(statsData.stats || {}));
+    } catch (err) {
+      console.error("Police data load failed:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      await updatePoliceCaseStatus(id, status);
+      setCases(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+    } catch (err) {
+      console.error("Status update failed:", err.message);
+    }
+  };
+
+  const handleLogout = () => { clearAuthSession(); navigate("/login"); };
+
   const SECTIONS = {
-    dashboard: <DashboardView onNav={setActive} />,
-    cases:     <CasesView />,
-    missing:   <MissingView />,
-    abuse:     <AbuseView />,
+    dashboard: <DashboardView onNav={setActive} cases={cases} stats={stats} loading={loading} />,
+    cases:     <CasesView cases={cases} onStatusUpdate={handleStatusUpdate} />,
+    missing:   <MissingView cases={cases.filter(c => c.type === "Missing")} />,
+    abuse:     <AbuseView cases={cases.filter(c => c.type === "Abuse")} />,
     map:       <MapView />,
-    evidence:  <EvidenceView />,
-    notes:     <NotesView />,
+    evidence:  <EvidenceView cases={cases} />,
+    notes:     <NotesView cases={cases} />,
     reports:   <ReportsView />,
     alerts:    <AlertsView />,
   };
@@ -566,7 +636,7 @@ export default function PoliceDashboard() {
               <p className="text-[12px] font-bold text-slate-800 truncate">Inès Uwimana</p>
               <p className="text-[10px] text-slate-400">Police Officer</p>
             </div>
-            <button className="text-slate-400 hover:text-slate-700"><LogOut className="w-4 h-4" /></button>
+            <button className="text-slate-400 hover:text-slate-700" onClick={handleLogout}><LogOut className="w-4 h-4" /></button>
           </div>
         </div>
       </aside>
@@ -578,12 +648,9 @@ export default function PoliceDashboard() {
             <h1 className="text-[14px] font-extrabold text-slate-800">{cur?.label}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={()=>setActive("alerts")} className="relative p-2 rounded-lg hover:bg-slate-100">
-              <Bell className="w-5 h-5 text-slate-500" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <NotificationBell accentColor="blue" />
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-[11px] font-bold text-blue-700">IU</span>
+              <span className="text-[11px] font-bold text-blue-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "PO"}</span>
             </div>
           </div>
         </header>

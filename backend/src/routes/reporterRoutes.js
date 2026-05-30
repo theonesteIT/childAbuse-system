@@ -4,9 +4,8 @@ import { authRequired, userRequired } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.use(authRequired, userRequired);
-
 const STATUS_ORDER = ["submitted", "verified", "under-investigation", "resolved"];
+const ALLOWED_REPORT_TYPES = ["Missing", "Abuse"];
 
 function toClientReport(row) {
   return {
@@ -21,6 +20,7 @@ function toClientReport(row) {
     district: row.district,
     status: row.status,
     anonymous: Boolean(row.is_anonymous),
+    publicContact: row.public_contact || null,
     date: row.created_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -29,13 +29,15 @@ function toClientReport(row) {
 
 function buildCaseTimeline(report) {
   const currentIndex = STATUS_ORDER.indexOf(report.status);
-  const submittedAt = report.createdAt ? new Date(report.createdAt).toISOString().slice(0, 16).replace("T", " ") : "—";
+  const submittedAt = report.createdAt
+    ? new Date(report.createdAt).toISOString().slice(0, 16).replace("T", " ")
+    : "-";
 
   return [
     { step: "Submitted", date: submittedAt, done: currentIndex >= 0 },
-    { step: "Verified", date: "—", done: currentIndex >= 1 },
-    { step: "Under Investigation", date: "—", done: currentIndex >= 2 },
-    { step: "Resolved", date: "—", done: currentIndex >= 3 },
+    { step: "Verified", date: "-", done: currentIndex >= 1 },
+    { step: "Under Investigation", date: "-", done: currentIndex >= 2 },
+    { step: "Resolved", date: "-", done: currentIndex >= 3 },
   ];
 }
 
@@ -62,11 +64,122 @@ async function generateUniqueCaseId() {
   return `CW-${Date.now()}`;
 }
 
+function normalizeAnonymous(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  if (typeof value === "number") return value === 1;
+  return false;
+}
+
+function validateReportPayload(payload, { requireReporterIdentity = false } = {}) {
+  const type = String(payload.type || "").trim();
+  const childName = String(payload.childName || "").trim();
+  const location = String(payload.location || "").trim();
+  const description = String(payload.description || "").trim();
+  const district = String(payload.district || "").trim();
+  const reporterContact = String(payload.reporterContact || "").trim();
+  const anonymous = normalizeAnonymous(payload.anonymous);
+  const ageRaw = payload.age;
+  const age = ageRaw === "" || ageRaw === null || ageRaw === undefined ? null : Number(ageRaw);
+  const gender = String(payload.gender || "").trim() || null;
+
+  if (!type || !childName || !location || !description) {
+    return { error: "type, childName, location and description are required" };
+  }
+
+  if (!ALLOWED_REPORT_TYPES.includes(type)) {
+    return { error: "type must be either Missing or Abuse" };
+  }
+
+  if (age !== null && (!Number.isFinite(age) || age < 0 || age > 120)) {
+    return { error: "age must be a valid number between 0 and 120" };
+  }
+
+  if (requireReporterIdentity && !anonymous && !reporterContact) {
+    return { error: "reporterContact is required when anonymous is false" };
+  }
+
+  return {
+    value: {
+      type,
+      childName,
+      location,
+      description,
+      district: district || "Unknown",
+      reporterContact: reporterContact || null,
+      anonymous,
+      age,
+      gender,
+    },
+  };
+}
+
+async function insertReport({ userId = null, report, districtFallback = "Unknown" }) {
+  const caseId = await generateUniqueCaseId();
+  const district = report.district || districtFallback || "Unknown";
+  const publicContact = userId ? null : (report.anonymous ? null : report.reporterContact);
+
+  const [result] = await pool.query(
+    `INSERT INTO reporter_reports (
+      case_id, user_id, report_type, child_name, child_age, child_gender, last_seen_location,
+      description, district, status, is_anonymous, public_contact
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, ?)`,
+    [
+      caseId,
+      userId,
+      report.type,
+      report.childName,
+      report.age,
+      report.gender,
+      report.location,
+      report.description,
+      district,
+      report.anonymous ? 1 : 0,
+      publicContact,
+    ],
+  );
+
+  const [rows] = await pool.query(
+    `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
+            district, status, is_anonymous, public_contact, created_at, updated_at
+     FROM reporter_reports
+     WHERE id = ? LIMIT 1`,
+    [result.insertId],
+  );
+
+  return rows[0];
+}
+
+// Public anonymous tip line / report endpoint (no login required)
+router.post("/public-reports", async (req, res) => {
+  const parsed = validateReportPayload(req.body, { requireReporterIdentity: true });
+  if (parsed.error) {
+    return res.status(400).json({ message: parsed.error });
+  }
+
+  try {
+    const created = await insertReport({
+      userId: null,
+      report: parsed.value,
+      districtFallback: "Unknown",
+    });
+
+    return res.status(201).json({
+      message: "Report submitted successfully",
+      report: toClientReport(created),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to submit public report", error: error.message });
+  }
+});
+
+router.use(authRequired, userRequired);
+
 router.get("/reports", async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
-              district, status, is_anonymous, created_at, updated_at
+              district, status, is_anonymous, public_contact, created_at, updated_at
        FROM reporter_reports
        WHERE user_id = ?
        ORDER BY created_at DESC`,
@@ -82,55 +195,28 @@ router.get("/reports", async (req, res) => {
 });
 
 router.post("/reports", async (req, res) => {
-  const { type, childName, age, gender, location, description, anonymous } = req.body;
-
-  if (!type || !childName || !location || !description) {
-    return res.status(400).json({ message: "type, childName, location and description are required" });
-  }
-
-  if (!["Missing", "Abuse"].includes(type)) {
-    return res.status(400).json({ message: "type must be either Missing or Abuse" });
+  const parsed = validateReportPayload(req.body, { requireReporterIdentity: false });
+  if (parsed.error) {
+    return res.status(400).json({ message: parsed.error });
   }
 
   try {
-    const caseId = await generateUniqueCaseId();
-    const [result] = await pool.query(
-      `INSERT INTO reporter_reports (
-        case_id, user_id, report_type, child_name, child_age, child_gender, last_seen_location,
-        description, district, status, is_anonymous
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?)`,
-      [
-        caseId,
-        req.auth.id,
-        type,
-        childName,
-        age ? Number(age) : null,
-        gender || null,
-        location,
-        description,
-        req.auth.district || "Unknown",
-        anonymous ? 1 : 0,
-      ],
-    );
+    const created = await insertReport({
+      userId: req.auth.id,
+      report: parsed.value,
+      districtFallback: req.auth.district || "Unknown",
+    });
 
     await createNotification(
       req.auth.id,
-      result.insertId,
+      created.id,
       "update",
-      `Your ${type.toLowerCase()} report ${caseId} was submitted successfully.`,
-    );
-
-    const [rows] = await pool.query(
-      `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
-              district, status, is_anonymous, created_at, updated_at
-       FROM reporter_reports
-       WHERE id = ? LIMIT 1`,
-      [result.insertId],
+      `Your ${created.report_type.toLowerCase()} report ${created.case_id} was submitted successfully.`,
     );
 
     return res.status(201).json({
       message: "Report submitted successfully",
-      report: toClientReport(rows[0]),
+      report: toClientReport(created),
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to submit report", error: error.message });
@@ -141,7 +227,7 @@ router.get("/reports/track/:caseId", async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
-              district, status, is_anonymous, created_at, updated_at
+              district, status, is_anonymous, public_contact, created_at, updated_at
        FROM reporter_reports
        WHERE case_id = ? AND user_id = ?
        LIMIT 1`,

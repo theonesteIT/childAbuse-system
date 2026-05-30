@@ -2,8 +2,8 @@ import { getAuthToken } from "../utils/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-async function request(path, options = {}) {
-  const token = getAuthToken();
+async function request(path, options = {}, requireAuth = true) {
+  const token = requireAuth ? getAuthToken() : null;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
@@ -19,6 +19,13 @@ async function request(path, options = {}) {
   }
 
   return data;
+}
+
+export function createPublicReport(payload) {
+  return request("/reporter/public-reports", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }, false);
 }
 
 export function getMyReports() {

@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2, Phone } from "lucide-react";
 import { BrandPanel, MobileTopBar, Field, Spinner } from "./Authshared";
 import { loginAdmin, loginUser } from "../services/authApi";
-import { saveAuthSession } from "../utils/authStorage";
+import { saveAuthSession, getDashboardRoute } from "../utils/authStorage";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Login() {
       const userData = await loginUser({ identifier: loginValue, password });
       saveAuthSession(userData.token, userData.user, "user");
       setSuccess(true);
-      setTimeout(() => navigate("/reporter/dashboard"), 700);
+      setTimeout(() => navigate(getDashboardRoute()), 700);
     } catch (userError) {
       const looksLikeEmail = /\S+@\S+\.\S+/.test(identifier);
       if (!looksLikeEmail) {
@@ -165,12 +165,12 @@ export default function Login() {
                   </button>
                   <span className="text-[12px] text-slate-600 font-medium">Remember me</span>
                 </label>
-                <a
-                  href="#"
+                <Link
+                  to="/forgot-password"
                   className="text-[12px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Submit */}

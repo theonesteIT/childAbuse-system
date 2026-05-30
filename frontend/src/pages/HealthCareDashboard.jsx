@@ -1,5 +1,10 @@
 // HealthcareDashboard.jsx — Childwatch Healthcare Provider Panel
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { clearAuthSession, getAuthProfile } from "../utils/authStorage";
+import { getHealthCases, getHealthStats } from "../services/healthApi";
+import NotificationBell from "../components/NotificationBell";
+import FileUploadWidget from "../components/FileUploadWidget";
 import {
   LayoutDashboard, FolderOpen, ClipboardList, Upload, AlertTriangle,
   CheckCircle2, Clock, Bell, Menu, LogOut, Send, Eye, Download,
@@ -7,21 +12,16 @@ import {
   Calendar, User, MapPin, Star, Zap
 } from "lucide-react";
 
-const STATS = [
-  { label:"New Referrals",       value:"6",  icon:Plus,           color:"amber" },
-  { label:"Active Child Cases",  value:"14", icon:FolderOpen,     color:"blue"  },
-  { label:"Emergency Cases",     value:"2",  icon:AlertTriangle,  color:"red"   },
-  { label:"Assessments Done",    value:"9",  icon:CheckCircle2,   color:"green" },
-  { label:"Pending Reports",     value:"4",  icon:Clock,          color:"amber" },
-  { label:"Referrals Sent",      value:"7",  icon:ArrowRightLeft, color:"blue"  },
-];
-
-const CASES = [
-  { id:"CW-2026-004", child:"Uwase Clarisse",  age:9,  type:"Abuse",    status:"emergency",  condition:"Critical",  district:"Nyarugenge", referred:"Social Worker", date:"2026-04-18" },
-  { id:"CW-2026-007", child:"Keza Brian",      age:11, type:"Abuse",    status:"active",     condition:"Stable",    district:"Kicukiro",   referred:"Police",        date:"2026-04-19" },
-  { id:"CW-2026-011", child:"Mugenzi Claire",  age:6,  type:"Neglect",  status:"pending",    condition:"Fair",      district:"Gasabo",     referred:"Social Worker", date:"2026-04-20" },
-  { id:"CW-2026-019", child:"Habimana Peter",  age:13, type:"Abuse",    status:"completed",  condition:"Recovered", district:"Gasabo",     referred:"Police",        date:"2026-04-15" },
-];
+function buildStats(s = {}) {
+  return [
+    { label:"New Referrals",      value: String(s.emergency ?? 0), icon:Plus,          color:"amber" },
+    { label:"Active Child Cases", value: String(s.active   ?? 0), icon:FolderOpen,     color:"blue"  },
+    { label:"Emergency Cases",    value: String(s.emergency?? 0), icon:AlertTriangle,  color:"red"   },
+    { label:"Assessments Done",   value: String(s.completed?? 0), icon:CheckCircle2,   color:"green" },
+    { label:"Pending Reports",    value: String(s.active   ?? 0), icon:Clock,          color:"amber" },
+    { label:"Referrals Sent",     value: String(s.total    ?? 0), icon:ArrowRightLeft,  color:"blue"  },
+  ];
+}
 
 const NAV = [
   { id:"dashboard",   label:"Dashboard",           icon:LayoutDashboard },
@@ -69,7 +69,7 @@ function SectionTitle({ title, sub }) {
   return <div className="mb-5"><h2 className="text-[17px] font-extrabold text-slate-900">{title}</h2>{sub && <p className="text-[12px] text-slate-500 mt-0.5">{sub}</p>}</div>;
 }
 
-function DashboardView({ onNav }) {
+function DashboardView({ onNav, cases, stats, loading }) {
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden bg-blue-600 rounded-2xl px-6 py-5 text-white">
@@ -93,7 +93,7 @@ function DashboardView({ onNav }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {STATS.map(s=><StatCard key={s.label} {...s}/>)}
+        {loading ? <p className="text-[12px] text-slate-400 col-span-6">Loading…</p> : stats.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ function DashboardView({ onNav }) {
             <button onClick={()=>onNav("referrals")} className="text-[12px] font-semibold text-blue-600">View all →</button>
           </div>
           <div className="space-y-2">
-            {CASES.map(c=>(
+            {cases.map(c=>(
               <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                 <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_CONFIG[c.status]?.dot||"bg-slate-400"}`}/>
                 <div className="flex-1 min-w-0">
@@ -140,11 +140,11 @@ function DashboardView({ onNav }) {
   );
 }
 
-function ReferralsView() {
+function ReferralsView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Medical Referrals" sub="Abuse and neglect cases referred for medical assessment"/>
-      {CASES.map(c=>(
+      {cases.map(c=>(
         <div key={c.id} className={`bg-white border rounded-2xl p-5 shadow-sm space-y-4 ${c.status==="emergency"?"border-red-200":"border-slate-100"}`}>
           {c.status==="emergency" && <div className="flex items-center gap-2 text-red-600 text-[12px] font-bold"><AlertTriangle className="w-4 h-4"/>Emergency case — immediate attention required</div>}
           <div className="flex items-start justify-between gap-3">
@@ -169,11 +169,11 @@ function ReferralsView() {
   );
 }
 
-function AssessmentView() {
+function AssessmentView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Medical Assessments" sub="Record and submit child medical evaluations"/>
-      {CASES.filter(c=>c.status!=="completed").map(c=>(
+      {cases.filter(c=>c.status!=="completed").map(c=>(
         <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -201,26 +201,23 @@ function AssessmentView() {
   );
 }
 
-function EvidenceView() {
+function EvidenceView({ cases }) {
   return (
     <div className="space-y-5">
       <SectionTitle title="Upload Medical Reports" sub="Attach treatment reports and injury documentation"/>
-      {CASES.map(c=>(
-        <div key={c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
+      {cases.map(c=>(
+        <div key={c.caseId || c.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.id}</p>
+              <p className="font-mono text-[11px] text-blue-600 font-bold">{c.caseId || c.id}</p>
               <p className="text-[14px] font-extrabold text-slate-800">{c.child}</p>
             </div>
             <StatusBadge status={c.status}/>
           </div>
-          <div className="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center hover:border-blue-300 transition-colors cursor-pointer">
-            <Upload className="w-7 h-7 text-slate-400 mx-auto mb-2"/>
-            <p className="text-[13px] font-semibold text-slate-600">Upload medical documents</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">PDF reports, X-rays, clinical photos · Max 50 MB</p>
-          </div>
+          <FileUploadWidget caseId={c.caseId || c.id} accentColor="blue" />
         </div>
       ))}
+      {cases.length === 0 && <p className="text-[12px] text-slate-400">No cases to upload reports for yet.</p>}
     </div>
   );
 }
@@ -282,13 +279,37 @@ function ReportsView() {
 }
 
 export default function HealthcareDashboard() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cases, setCases] = useState([]);
+  const [stats, setStats] = useState(buildStats({}));
+  const [loading, setLoading] = useState(true);
+  const profile = getAuthProfile();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const [casesData, statsData] = await Promise.all([getHealthCases(), getHealthStats()]);
+        setCases(casesData.cases || []);
+        setStats(buildStats(statsData.stats || {}));
+      } catch (err) {
+        console.error("Health data load failed:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleLogout = () => { clearAuthSession(); navigate("/login"); };
+
   const SECTIONS = {
-    dashboard:  <DashboardView onNav={setActive}/>,
-    referrals:  <ReferralsView/>,
-    assessment: <AssessmentView/>,
-    evidence:   <EvidenceView/>,
+    dashboard:  <DashboardView onNav={setActive} cases={cases} stats={stats} loading={loading}/>,
+    referrals:  <ReferralsView cases={cases}/>,
+    assessment: <AssessmentView cases={cases}/>,
+    evidence:   <EvidenceView cases={cases}/>,
     emergency:  <EmergencyView/>,
     reports:    <ReportsView/>,
     alerts:     <div className="text-slate-500 p-4">No new alerts.</div>,
@@ -311,7 +332,7 @@ export default function HealthcareDashboard() {
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><span className="text-[11px] font-extrabold text-blue-700">JH</span></div>
             <div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-slate-800 truncate">Dr. Jean Habimana</p><p className="text-[10px] text-slate-400">Healthcare Provider</p></div>
-            <button className="text-slate-400 hover:text-slate-700"><LogOut className="w-4 h-4"/></button>
+            <button className="text-slate-400 hover:text-slate-700" onClick={handleLogout}><LogOut className="w-4 h-4"/></button>
           </div>
         </div>
       </aside>
@@ -322,8 +343,8 @@ export default function HealthcareDashboard() {
             <h1 className="text-[14px] font-extrabold text-slate-800">{cur?.label}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg hover:bg-slate-100"><Bell className="w-5 h-5 text-slate-500"/><span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"/></button>
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><span className="text-[11px] font-bold text-blue-700">JH</span></div>
+            <NotificationBell accentColor="blue" />
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><span className="text-[11px] font-bold text-blue-700">{profile?.fullName?.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "HC"}</span></div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{SECTIONS[active]}</main>

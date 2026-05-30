@@ -71,3 +71,17 @@ export function loginUser(payload) {
 export function getMyAccount() {
   return authRequest("/admin/me");
 }
+
+export function requestPasswordReset(payload) {
+  return request("/admin/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetPassword(payload) {
+  return request("/admin/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}

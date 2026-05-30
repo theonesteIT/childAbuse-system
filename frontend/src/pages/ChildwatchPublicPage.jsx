@@ -132,7 +132,7 @@ function Nav() {
               Login
             </Link>
             <Link
-              to="/register"
+              to="/report"
               className="px-4 py-2 text-[13px] font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all active:scale-[0.98] shadow-sm"
             >
               Report now
@@ -183,7 +183,7 @@ function Nav() {
                 Login
               </Link>
               <Link
-                to="/register"
+                to="/report"
                 onClick={() => setOpen(false)}
                 className="block w-full text-center py-3 rounded-xl bg-blue-600 text-white font-semibold text-[14px] hover:bg-blue-700 transition-all active:scale-[0.98]"
               >
@@ -318,7 +318,7 @@ function Hero() {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <Link
-                to="/register"
+                to="/report"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-xl shadow-lg transition-all active:scale-[0.98]"
               >
                 <FileText className="w-4 h-4" />
@@ -748,7 +748,7 @@ function CTABanner() {
             </p>
           </div>
           <div className="flex flex-col gap-3 shrink-0">
-            <Link to="/register"
+            <Link to="/report"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-blue-700 font-semibold text-[14px] rounded-xl hover:bg-blue-50 transition-all active:scale-[0.98] whitespace-nowrap">
               Get started <ArrowRight className="w-4 h-4" />
             </Link>
