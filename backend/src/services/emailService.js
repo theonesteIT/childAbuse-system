@@ -47,7 +47,7 @@ export async function sendEmail(to, subject, html) {
   try {
     const transporter = await getTransporter();
     const info = await transporter.sendMail({
-      from: `"Childwatch System" <noreply@childwatch.rw>`,
+      from: process.env.SENDER_EMAIL || `"Childwatch System" <noreply@childwatch.rw>`,
       to,
       subject,
       html,

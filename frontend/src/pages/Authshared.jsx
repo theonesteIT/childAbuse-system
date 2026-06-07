@@ -1,7 +1,23 @@
 // AuthShared.jsx — shared components for Login.jsx & Register.jsx
 // Usage: import { BrandPanel, Field, MobileTopBar, Spinner } from "./AuthShared";
 
-import { Shield, Bell, Users, FileText, MapPin, AlertCircle } from "lucide-react";
+import { Shield, Bell, Users, FileText, MapPin, AlertCircle, Sun, Moon } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
+
+export function ThemeToggle({ className = "" }) {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 ${className}`}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </button>
+  );
+}
 
 // ── Brand panel — left column on desktop ──────────────────────────
 export function BrandPanel({ mode }) {
@@ -14,29 +30,12 @@ export function BrandPanel({ mode }) {
 
   return (
     <div
-      className="hidden lg:flex flex-col justify-between relative overflow-hidden min-h-screen w-full px-10 py-12"
-      style={{ background: "linear-gradient(135deg, #F4B400 0%, #D71920 100%)" }}
+      className="hidden lg:flex flex-col justify-between relative overflow-hidden min-h-screen w-full px-10 py-12 bg-brand-gradient dark:bg-premium-dark-gradient"
     >
-      {/* Decorative blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full opacity-20 bg-white" />
-        <div className="absolute top-1/3 -right-20 w-64 h-64 rounded-full opacity-10 bg-white" />
-        <div className="absolute -bottom-20 left-1/3 w-56 h-56 rounded-full opacity-15 bg-[#111111]" />
-        {/* Dot grid */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id={`dots-${mode}`} x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.5" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill={`url(#dots-${mode})`} />
-        </svg>
-      </div>
-
       {/* Logo */}
       <div className="relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center backdrop-blur-sm">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
             <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <div>
@@ -48,7 +47,7 @@ export function BrandPanel({ mode }) {
 
       {/* Copy */}
       <div className="relative z-10 flex-1 flex flex-col justify-center py-10">
-        <div className="inline-flex items-center gap-2 bg-black/10 backdrop-blur-sm border border-white/20 text-white rounded-full px-3 py-1.5 text-[11px] font-semibold mb-6 w-fit">
+        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-full px-3 py-1.5 text-[11px] font-semibold mb-6 w-fit">
           <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-white" />
           Rwanda Child Protection Platform
         </div>
@@ -66,7 +65,7 @@ export function BrandPanel({ mode }) {
         <div className="mt-8 space-y-3">
           {features.map((f) => (
             <div key={f.text} className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-black/15 flex items-center justify-center text-white shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white shrink-0">
                 {f.icon}
               </div>
               <span className="text-[13px] text-white/80 font-medium">{f.text}</span>
@@ -77,7 +76,7 @@ export function BrandPanel({ mode }) {
 
       {/* Live case preview card */}
       <div className="relative z-10">
-        <div className="bg-black/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <span className="text-[11px] font-semibold text-white/80">Case active — #CW-2026-00124</span>
@@ -104,19 +103,21 @@ export function BrandPanel({ mode }) {
 export function MobileTopBar({ href, linkLabel, linkText }) {
   return (
     <div
-      className="lg:hidden flex items-center justify-between px-5 py-4 sticky top-0 z-40"
-      style={{ background: "linear-gradient(135deg, #F4B400 0%, #D71920 100%)" }}
+      className="lg:hidden flex items-center justify-between px-5 py-4 sticky top-0 z-40 bg-white/95 border-b border-slate-100 backdrop-blur dark:bg-slate-900/95 dark:border-slate-800"
     >
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center">
           <Shield className="w-4 h-4 text-white" strokeWidth={2.5} />
         </div>
-        <span className="text-[15px] font-extrabold text-white">Childwatch</span>
+        <span className="text-[15px] font-extrabold text-slate-900 dark:text-white">Childwatch</span>
       </div>
-      <a href={href} className="text-[12px] font-semibold text-white/80 hover:text-white transition-colors">
-        {linkText}{" "}
-        <span className="text-white font-bold">{linkLabel}</span>
-      </a>
+      <div className="flex items-center gap-2">
+        <ThemeToggle className="h-9 w-9" />
+        <a href={href} className="text-[12px] font-semibold text-slate-500 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:text-white">
+          {linkText}{" "}
+          <span className="font-bold text-yellow-700 dark:text-amber-500">{linkLabel}</span>
+        </a>
+      </div>
     </div>
   );
 }
@@ -125,12 +126,12 @@ export function MobileTopBar({ href, linkLabel, linkText }) {
 export function Field({ label, type = "text", placeholder, icon: Icon, value, onChange, error, suffix }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-[12px] font-bold text-slate-500 tracking-widest uppercase">
+      <label className="block text-[12px] font-bold text-slate-500 tracking-widest uppercase dark:text-slate-400">
         {label}
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none dark:text-slate-500">
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -141,9 +142,9 @@ export function Field({ label, type = "text", placeholder, icon: Icon, value, on
           placeholder={placeholder}
           className={`w-full ${Icon ? "pl-10" : "pl-4"} ${suffix ? "pr-11" : "pr-4"} py-3 text-[14px] rounded-xl border transition-all outline-none
             ${error
-              ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-              : "border-slate-200 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"
-            } text-slate-800 placeholder-slate-400`}
+              ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-red-500/40 dark:bg-red-500/10 dark:focus:ring-red-500/10"
+              : "border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-blue-400 dark:focus:ring-blue-500/10"
+            } text-slate-800 placeholder-slate-400 dark:text-slate-200 dark:placeholder-slate-500`}
         />
         {suffix && (
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2">

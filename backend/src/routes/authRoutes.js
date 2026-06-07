@@ -5,6 +5,7 @@ import crypto from "crypto";
 import pool from "../db.js";
 import { authRequired } from "../middleware/auth.js";
 import passport from "../middleware/passport.js";
+import { sendEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -108,11 +109,30 @@ router.post("/forgot-password", async (req, res) => {
     };
     if (!account) return res.json(genericResponse);
     const reset = await savePasswordResetToken(account);
-    const includeDebugToken = process.env.NODE_ENV !== "production";
-    const debugPayload = includeDebugToken
-      ? { resetToken: reset.token, expiresAt: reset.expiresAt.toISOString() }
-      : {};
-    return res.json({ ...genericResponse, ...debugPayload });
+    
+    if (isLikelyEmail(account.contact)) {
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      const resetUrl = `${frontendUrl}/reset-password?token=${reset.token}`;
+      
+      const html = `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+          <div style="background:#1e3a8a;padding:24px 32px">
+            <h1 style="color:white;margin:0;font-size:20px">🛡️ Childwatch</h1>
+          </div>
+          <div style="padding:32px">
+            <p style="color:#475569;margin-top:0">Hello,</p>
+            <p style="color:#475569">You requested to reset your password for your Childwatch account. Click the button below to reset it. This link is valid for ${getResetTtlMinutes()} minutes.</p>
+            <a href="${resetUrl}" style="display:inline-block;background:#2563eb;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:700;margin-top:8px">
+              Reset Password →
+            </a>
+            <p style="color:#94a3b8;font-size:12px;margin-top:20px">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        </div>
+      `;
+      await sendEmail(account.contact, "Reset Your Childwatch Password", html);
+    }
+
+    return res.json(genericResponse);
   } catch (error) {
     return res.status(500).json({ message: "Failed to process password reset request", error: error.message });
   }

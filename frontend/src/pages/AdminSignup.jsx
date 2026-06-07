@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
-import { BrandPanel, MobileTopBar, Field, Spinner } from "./Authshared";
+import { BrandPanel, MobileTopBar, Field, Spinner, ThemeToggle } from "./Authshared";
 import { signupAdmin } from "../services/authApi";
 
 export default function AdminSignup() {
@@ -64,35 +64,36 @@ export default function AdminSignup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950">
       <MobileTopBar isLogin={false} href="/login" linkText="Have an account?" linkLabel="Sign in →" />
 
       <div className="lg:w-[46%] xl:w-[42%] shrink-0">
         <BrandPanel mode="register" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-10 py-12 lg:py-0">
+      <div className="relative flex-1 flex items-center justify-center px-5 sm:px-10 py-12 lg:py-0">
+        <ThemeToggle className="hidden lg:inline-flex absolute right-6 top-6" />
         <div className="w-full max-w-[420px]">
           <div className="mb-8">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-yellow-700 mb-3">
               <span className="block w-4 h-px bg-yellow-400" />
               Admin signup
             </span>
-            <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 leading-tight">
+            <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-tight">
               Create admin account
             </h1>
-            <p className="text-[13px] text-slate-500 mt-1.5 leading-relaxed">
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
               Use your email and password to create admin credentials for dashboard access.
             </p>
           </div>
 
           {success ? (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-7 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-7 text-center dark:bg-green-500/10 dark:border-green-500/30">
               <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-7 h-7 text-green-600" />
               </div>
-              <h3 className="text-[17px] font-extrabold text-green-800 mb-1.5">Account created!</h3>
-              <p className="text-[13px] text-green-600">Redirecting to login...</p>
+              <h3 className="text-[17px] font-extrabold text-green-800 dark:text-green-400 mb-1.5">Account created!</h3>
+              <p className="text-[13px] text-green-600 dark:text-green-300">Redirecting to login...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -166,9 +167,9 @@ export default function AdminSignup() {
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 py-3.5 disabled:opacity-60 font-bold text-[14px] rounded-xl shadow-sm transition-all active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)', color: '#111827', boxShadow: '0 10px 30px rgba(244,180,0,0.18)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #D99A00 0%, #B7791F 100%)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #F4B400 0%, #D99A00 100%)'}
+                style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)', color: '#FFFFFF', boxShadow: '0 10px 30px rgba(37,99,235,0.16)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)'}
               >
                 {loading ? <Spinner /> : <><span>Create admin</span><ArrowRight className="w-4 h-4" /></>}
               </button>
@@ -176,7 +177,7 @@ export default function AdminSignup() {
           )}
 
           {!success && (
-            <p className="text-center text-[13px] text-slate-500 mt-8">
+            <p className="text-center text-[13px] text-slate-500 dark:text-slate-400 mt-8">
               Already have credentials?{" "}
               <Link to="/login" className="font-bold text-yellow-700 hover:text-yellow-900 transition-colors">
                 Sign in →

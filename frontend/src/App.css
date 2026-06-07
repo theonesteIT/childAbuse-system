@@ -1,23 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  --simba-primary: #F4B400;
-  --simba-primary-hover: #D99A00;
-  --simba-primary-dark: #B7791F;
-  --simba-secondary: #D71920;
-  --simba-secondary-hover: #B9151B;
+  --simba-primary: #1E3A8A;
+  --simba-primary-hover: #2563EB;
+  --simba-primary-dark: #172554;
+  --simba-secondary: #2563EB;
+  --simba-secondary-hover: #1D4ED8;
   --simba-soft-red: #FEE2E2;
 
-  --simba-success: #22C55E;
-  --simba-success-strong: #16A34A;
+  --simba-success: #10B981;
+  --simba-success-strong: #059669;
   --simba-warning: #F59E0B;
   --simba-risk: #DC2626;
 
-  --simba-bg-main: #FFFDF5;
-  --simba-bg-secondary: #FEF3C7;
+  --simba-bg-main: #F8FAFC;
+  --simba-bg-secondary: #EFF6FF;
   --simba-card: #FFFFFF;
-  --simba-surface: #FFF8E1;
-  --simba-border: #F3E8C8;
+  --simba-surface: #F1F5F9;
+  --simba-border: #E2E8F0;
 
   --simba-text-primary: #1F2937;
   --simba-text-secondary: #4B5563;
@@ -28,42 +30,19 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --simba-primary: #FBBF24;
-    --simba-primary-hover: #F59E0B;
-    --simba-primary-dark: #D99A00;
-    --simba-secondary: #EF4444;
-    --simba-secondary-hover: #DC2626;
-    --simba-soft-red: #3B1212;
-
-    --simba-bg-main: #0A0A0A;
-    --simba-bg-secondary: #121212;
-    --simba-card: #1A1A1A;
-    --simba-surface: #222222;
-    --simba-border: #2A2A2A;
-
-    --simba-text-primary: #F9FAFB;
-    --simba-text-secondary: #D1D5DB;
-    --simba-text-muted: #9CA3AF;
-
-    color-scheme: dark;
-  }
-}
-
 /* Global palette remap for existing utility classes across all pages. */
 @theme inline {
-  /* Primary (gold) */
-  --color-blue-50: #FFF8E1;
-  --color-blue-100: #FEF3C7;
-  --color-blue-200: #F3E8C8;
-  --color-blue-300: #FCD34D;
-  --color-blue-400: #FBBF24;
-  --color-blue-500: var(--simba-primary);
-  --color-blue-600: var(--simba-primary);
-  --color-blue-700: var(--simba-primary-hover);
-  --color-blue-800: var(--simba-primary-dark);
-  --color-blue-900: #8A5A13;
+  /* Protection blue */
+  --color-blue-50: #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-200: #BFDBFE;
+  --color-blue-300: #93C5FD;
+  --color-blue-400: #60A5FA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: var(--simba-secondary);
+  --color-blue-700: #1D4ED8;
+  --color-blue-800: var(--simba-primary);
+  --color-blue-900: #172554;
 
   /* Secondary + risk (red) */
   --color-red-50: var(--simba-soft-red);
@@ -71,30 +50,30 @@
   --color-red-200: #FCA5A5;
   --color-red-300: #F87171;
   --color-red-400: #EF4444;
-  --color-red-500: var(--simba-secondary);
+  --color-red-500: #EF4444;
   --color-red-600: var(--simba-risk);
-  --color-red-700: var(--simba-secondary-hover);
+  --color-red-700: #B91C1C;
   --color-red-800: #991B1B;
   --color-red-900: #7F1D1D;
 
   /* Trust status */
-  --color-green-50: #ECFDF3;
+  --color-green-50: #ECFDF5;
   --color-green-100: #D1FAE5;
   --color-green-200: #A7F3D0;
   --color-green-300: #6EE7B7;
   --color-green-400: #34D399;
   --color-green-500: var(--simba-success);
-  --color-green-600: #16A34A;
-  --color-green-700: #15803D;
+  --color-green-600: #059669;
+  --color-green-700: #047857;
   --color-green-800: #166534;
   --color-green-900: #14532D;
 
   --color-emerald-50: #ECFDF5;
   --color-emerald-100: #D1FAE5;
-  --color-emerald-600: #16A34A;
-  --color-emerald-700: #15803D;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
 
-  --color-amber-50: #FFF8E1;
+  --color-amber-50: #FFFBEB;
   --color-amber-100: #FEF3C7;
   --color-amber-200: #FDE68A;
   --color-amber-500: var(--simba-warning);
@@ -105,14 +84,14 @@
   --color-slate-50: var(--simba-bg-main);
   --color-slate-100: var(--simba-surface);
   --color-slate-200: var(--simba-border);
-  --color-slate-300: #E5DDC7;
+  --color-slate-300: #CBD5E1;
   --color-slate-400: var(--simba-text-muted);
   --color-slate-500: var(--simba-text-secondary);
   --color-slate-600: #374151;
   --color-slate-700: #1F2937;
-  --color-slate-800: #111827;
-  --color-slate-900: #0B1220;
-  --color-slate-950: #05070D;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #111827;
+  --color-slate-950: #0B1120;
 
   --color-zinc-50: var(--color-slate-50);
   --color-zinc-100: var(--color-slate-100);
@@ -138,9 +117,9 @@
   --color-gray-900: var(--color-slate-900);
   --color-gray-950: var(--color-slate-950);
 
-  --color-cyan-50: #FFF8E1;
-  --color-cyan-100: #FEF3C7;
-  --color-cyan-700: var(--simba-primary-dark);
+  --color-cyan-50: #ECFEFF;
+  --color-cyan-100: #CFFAFE;
+  --color-cyan-700: #0E7490;
 
   --color-teal-50: #ECFDF3;
   --color-teal-600: #16A34A;
@@ -150,12 +129,26 @@
   --color-orange-200: #FED7AA;
   --color-orange-700: #C2410C;
 
-  --color-yellow-50: #FFF8E1;
-  --color-yellow-400: #F4B400;
-  --color-yellow-600: #D99A00;
-  --color-yellow-700: #B7791F;
+  --color-yellow-50: #EFF6FF;
+  --color-yellow-400: #3B82F6;
+  --color-yellow-500: #2563EB;
+  --color-yellow-600: #1D4ED8;
+  --color-yellow-700: #1E3A8A;
 
   --color-purple-500: var(--simba-secondary);
+
+  --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 15px currentColor;
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 5px currentColor;
+  }
 }
 
 @layer base {
@@ -168,29 +161,24 @@
   body {
     background-color: var(--simba-bg-main);
     color: var(--simba-text-primary);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .bg-white {
-    background-color: var(--simba-card) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 .bg-brand-gradient {
-  background: linear-gradient(135deg, #F4B400 0%, #D71920 100%);
+  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
 }
 
 .bg-gold-luxury-gradient {
-  background: linear-gradient(135deg, #FCD34D 0%, #F4B400 50%, #D99A00 100%);
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #BFDBFE 100%);
 }
 
 .bg-premium-dark-gradient {
-  background: linear-gradient(135deg, #111111 0%, #1A1A1A 50%, #2A2A2A 100%);
+  background: linear-gradient(135deg, #172554 0%, #1E3A8A 50%, #0F172A 100%);
 }
 
 .shadow-gold-glow {
-  box-shadow: 0 10px 30px rgba(244, 180, 0, 0.18);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.16);
 }
 
 .shadow-red-glow {

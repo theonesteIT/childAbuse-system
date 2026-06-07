@@ -36,6 +36,12 @@ export function getAuthProfile() {
   }
 }
 
+/** Merge updates into the cached profile without losing other fields */
+export function setAuthProfile(updates) {
+  const current = getAuthProfile() || {};
+  localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...current, ...updates }));
+}
+
 // Returns the sub-role from the user profile ("Police", "Hospital", "Social Worker", etc.)
 export function getAuthSubRole() {
   const profile = getAuthProfile();
@@ -47,8 +53,10 @@ export function getDashboardRoute() {
   const accountType = getAuthRole(); // "admin" | "user"
   if (accountType === "admin") return "/admin/dashboard";
   const subRole = getAuthSubRole();
-  if (subRole === "Police")         return "/police/dashboard";
-  if (subRole === "Social Worker")  return "/social/dashboard";
-  if (subRole === "Hospital")       return "/health/dashboard";
+  if (subRole === "Police")             return "/police/dashboard";
+  if (subRole === "Social Worker")      return "/social/dashboard";
+  if (subRole === "Hospital")           return "/health/dashboard";
+  if (subRole === "Community Member")   return "/community/dashboard";
+  if (subRole === "Institution Admin")  return "/institution/dashboard";
   return "/reporter/dashboard"; // Parent/Reporter or fallback
 }

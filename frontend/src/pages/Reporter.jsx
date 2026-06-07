@@ -9,25 +9,25 @@ import {
   User, Plus, Eye, Edit2, Upload, Phone, ChevronRight,
   CheckCircle2, Clock, X, Menu, LogOut, ArrowRight,
   Image, File, Mic, Lock, Mail, Hash, Star, Heart,
-  Home, Info, Send, RefreshCw, Zap, Flag
+  Home, Info, Send, RefreshCw, Zap, Flag, Sun, Moon
 } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import ProfilePage from "../components/ProfilePage";
 import { clearAuthSession, getAuthProfile } from "../utils/authStorage";
 import { getMyAccount } from "../services/authApi";
 import {
   createMyReport,
+  updateMyReport,
   getMyNotifications,
   getMyReports,
   markAllNotificationsRead,
   markNotificationRead,
   trackMyCase,
+  uploadEvidence,
 } from "../services/reporterApi";
 
 // ── Mock data ────────────────────────────────────────────────────
-const MY_REPORTS = [
-  { id:"CW-2026-041", type:"Missing",  child:"Mutoni Jean",   date:"2026-04-20", status:"under-investigation", district:"Gasabo"    },
-  { id:"CW-2026-028", type:"Abuse",    child:"Keza Diana",    date:"2026-04-10", status:"verified",             district:"Kicukiro"  },
-  { id:"CW-2026-009", type:"Missing",  child:"Irakoze Paul",  date:"2026-03-22", status:"resolved",             district:"Musanze"   },
-];
 
 const TIMELINE_STEPS = ["Submitted","Verified","Under Investigation","Resolved"];
 const AWARENESS_TIPS = [
@@ -93,11 +93,21 @@ function normalizeReport(report) {
     id: report.id,
     caseId: report.caseId || report.id,
     type: report.type || "Missing",
+    incidentType: report.incidentType || report.type || "",
     child: report.child || "Unknown",
+    age: report.age ?? null,
+    gender: report.gender || "",
+    location: report.location || "",
+    sector: report.sector || "",
+    description: report.description || "",
     date: formatDateDisplay(report.createdAt || report.date),
     status: normalizedStatus,
     district: report.district || "Unknown",
+    urgency: report.urgency || "normal",
+    anonymous: Boolean(report.anonymous),
+    publicContact: report.publicContact || null,
     createdAt: report.createdAt || report.date,
+    updatedAt: report.updatedAt || null,
   };
 }
 
@@ -112,7 +122,7 @@ function normalizeNotification(item) {
 }
 
 const STATUS_STYLES = {
-  submitted:           { bg:"bg-slate-100",  text:"text-slate-600",  dot:"bg-slate-400"  },
+  submitted:           { bg:"bg-slate-100",  text:"text-slate-600 dark:text-slate-400",  dot:"bg-slate-400"  },
   verified:            { bg:"bg-yellow-50",    text:"text-yellow-700",   dot:"bg-yellow-500"   },
   "under-investigation":{ bg:"bg-amber-50",  text:"text-amber-700",  dot:"bg-amber-500"  },
   resolved:            { bg:"bg-green-50",   text:"text-yellow-700",  dot:"bg-green-500"  },
@@ -138,7 +148,7 @@ function Badge({ children, color = "blue" }) {
     green: "bg-green-50 text-yellow-700 border-green-200",
     amber: "bg-amber-50 text-amber-700 border-amber-200",
     red:   "bg-red-50 text-red-700 border-red-200",
-    slate: "bg-[var(--simba-bg-main)] text-slate-600 border-slate-200",
+    slate: "bg-slate-50 dark:bg-slate-800/30 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800",
   };
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${map[color]}`}>{children}</span>;
 }
@@ -146,14 +156,14 @@ function Badge({ children, color = "blue" }) {
 function FormField({ label, type="text", placeholder, icon:Icon, value, onChange, required }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+      <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       <div className="relative">
         {Icon && <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon className="w-4 h-4" /></div>}
         <input type={type} value={value} onChange={onChange} placeholder={placeholder}
-          className={`w-full ${Icon?"pl-10":"pl-4"} pr-4 py-3 text-[14px] border border-slate-200 bg-white rounded-xl outline-none
-            focus:border-blue-400 focus:ring-2 focus:ring-blue-50 placeholder-slate-400 text-slate-800`} />
+          className={`w-full ${Icon?"pl-10":"pl-4"} pr-4 py-3 text-[14px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl outline-none
+            focus:border-blue-400 focus:ring-2 focus:ring-blue-50 placeholder-slate-400 text-slate-800 dark:text-slate-200`} />
       </div>
     </div>
   );
@@ -163,8 +173,8 @@ function SectionWrap({ title, sub, children }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-[18px] font-extrabold text-slate-900">{title}</h2>
-        {sub && <p className="text-[13px] text-slate-500 mt-1">{sub}</p>}
+        <h2 className="text-[18px] font-extrabold text-slate-900 dark:text-white">{title}</h2>
+        {sub && <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
       </div>
       {children}
     </div>
@@ -202,7 +212,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button onClick={() => onNav("report")}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-yellow-700 font-bold text-[13px] rounded-xl hover:bg-yellow-50 transition-colors">
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 text-yellow-700 font-bold text-[13px] rounded-xl hover:bg-yellow-50 transition-colors">
               <Plus className="w-4 h-4" /> New Report
             </button>
             <button onClick={() => onNav("emergency")}
@@ -222,21 +232,21 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
             green: "bg-green-50 text-green-600",
           };
           return (
-            <div key={s.label} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
+            <div key={s.label} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 shadow-sm text-center">
               <div className={`w-9 h-9 rounded-xl mx-auto mb-2 flex items-center justify-center ${colors[s.color]}`}>
                 <s.icon className="w-4.5 h-4.5 w-5 h-5" />
               </div>
-              <p className="text-[22px] font-extrabold text-slate-900">{s.value}</p>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{s.label}</p>
+              <p className="text-[22px] font-extrabold text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">{s.label}</p>
             </div>
           );
         })}
       </div>
 
       {/* Recent reports */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <p className="font-extrabold text-slate-800">Recent Reports</p>
+          <p className="font-extrabold text-slate-800 dark:text-slate-200">Recent Reports</p>
           <button onClick={() => onNav("my-reports")} className="text-[12px] font-semibold text-yellow-600 hover:text-blue-800">
             View all →
           </button>
@@ -245,11 +255,11 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
           {myReports.slice(0, 3).map(r => {
             const s = STATUS_STYLES[r.status] || STATUS_STYLES.submitted;
             return (
-              <div key={r.caseId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--simba-bg-main)] transition-colors cursor-pointer"
+              <div key={r.caseId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:bg-slate-800/30 transition-colors cursor-pointer"
                 onClick={() => onNav("my-reports")}>
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.dot}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-slate-800 truncate">{r.child} — {r.type}</p>
+                  <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 truncate">{r.child} — {r.type}</p>
                   <p className="text-[11px] text-slate-400">{r.caseId} · {r.date}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${s.bg} ${s.text} whitespace-nowrap`}>
@@ -259,7 +269,7 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
             );
           })}
           {myReports.length === 0 && (
-            <p className="text-[12px] text-slate-500">No reports yet. Create your first report.</p>
+            <p className="text-[12px] text-slate-500 dark:text-slate-400">No reports yet. Create your first report.</p>
           )}
         </div>
       </div>
@@ -283,7 +293,9 @@ function HomeSection({ onNav, profileData, isProfileLoading, myReports }) {
 function ReportSection({ onReportCreated }) {
   const [type, setType] = useState("Missing");
   const [anon, setAnon] = useState(false);
-  const [form, setForm] = useState({ childName:"",age:"",gender:"",location:"",description:"" });
+  const [form, setForm] = useState({ childName:"",age:"",gender:"",location:"",latitude:null,longitude:null,description:"" });
+  const [locating, setLocating] = useState(false);
+  const [file, setFile] = useState(null);
   const [submittedCaseId, setSubmittedCaseId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -304,10 +316,16 @@ function ReportSection({ onReportCreated }) {
         age: form.age || null,
         gender: form.gender || null,
         location: form.location,
+        latitude: form.latitude,
+        longitude: form.longitude,
         description: form.description,
         anonymous: anon,
       });
-      setSubmittedCaseId(response?.report?.caseId || "Created");
+      const newCaseId = response?.report?.caseId;
+      if (newCaseId && file) {
+        await uploadEvidence(newCaseId, file);
+      }
+      setSubmittedCaseId(newCaseId || "Created");
       if (onReportCreated) {
         await onReportCreated();
       }
@@ -323,13 +341,13 @@ function ReportSection({ onReportCreated }) {
       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
         <CheckCircle2 className="w-8 h-8 text-green-600" />
       </div>
-      <h2 className="text-[20px] font-extrabold text-slate-900">Report Submitted!</h2>
-      <p className="text-[14px] text-slate-500 max-w-sm">Your case has been created. You will receive updates as authorities respond. Save your case ID below.</p>
+      <h2 className="text-[20px] font-extrabold text-slate-900 dark:text-white">Report Submitted!</h2>
+      <p className="text-[14px] text-slate-500 dark:text-slate-400 max-w-sm">Your case has been created. You will receive updates as authorities respond. Save your case ID below.</p>
       <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-6 py-3 text-center">
         <p className="text-[11px] text-blue-500 font-bold uppercase tracking-wider mb-1">Your Case ID</p>
         <p className="text-[22px] font-extrabold text-yellow-700 font-mono">{submittedCaseId}</p>
       </div>
-      <button onClick={() => { setSubmittedCaseId(""); setForm({childName:"",age:"",gender:"",location:"",description:""}); }}
+      <button onClick={() => { setSubmittedCaseId(""); setForm({childName:"",age:"",gender:"",location:"",latitude:null,longitude:null,description:""}); }}
         className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-[14px] rounded-xl transition-colors">
         Submit Another Report
       </button>
@@ -345,55 +363,98 @@ function ReportSection({ onReportCreated }) {
             className={`flex-1 py-3 rounded-xl text-[13px] font-bold border transition-all
               ${type===t
                 ? t==="Missing" ? "bg-yellow-500 text-white border-yellow-600 shadow-sm" : "bg-red-600 text-white border-red-600 shadow-sm"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
+                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/30"}`}>
             {t === "Missing" ? "🔍 Missing Child" : "🚨 Report Abuse"}
           </button>
         ))}
       </div>
 
       {/* Anonymous toggle */}
-      <div className="flex items-center gap-3 p-3 bg-[var(--simba-bg-main)] border border-slate-100 rounded-xl">
+      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-xl">
         <button onClick={() => setAnon(!anon)}
           className={`w-8 h-4 rounded-full transition-all relative shrink-0 ${anon?"bg-yellow-500":"bg-slate-300"}`}>
-          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${anon?"right-0.5":"left-0.5"}`} />
+          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white dark:bg-slate-900 shadow transition-all ${anon?"right-0.5":"left-0.5"}`} />
         </button>
         <div>
-          <p className="text-[13px] font-semibold text-slate-700">Anonymous Report</p>
+          <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-300">Anonymous Report</p>
           <p className="text-[11px] text-slate-400">Your identity will not be shared with authorities</p>
         </div>
         <Lock className="w-4 h-4 text-slate-400 shrink-0 ml-auto" />
       </div>
 
       {/* Form */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <FormField label="Child's Full Name" placeholder="Enter child's name" icon={User} value={form.childName} onChange={set("childName")} required />
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Age" type="number" placeholder="Age" value={form.age} onChange={set("age")} required />
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest">Gender <span className="text-red-400">*</span></label>
+            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Gender <span className="text-red-400">*</span></label>
             <select value={form.gender} onChange={set("gender")}
-              className="w-full px-4 py-3 text-[14px] border border-slate-200 bg-white rounded-xl outline-none focus:border-blue-400 appearance-none">
+              className="w-full px-4 py-3 dark:text-amber-500 text-[14px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl outline-none focus:border-blue-400 appearance-none">
               <option value="">Select</option>
               <option>Boy</option><option>Girl</option><option>Unknown</option>
             </select>
           </div>
         </div>
-        <FormField label="Last Seen Location" placeholder="e.g. Kimironko Market, Gasabo" icon={MapPin} value={form.location} onChange={set("location")} required />
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest">Description <span className="text-red-400">*</span></label>
+          <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+            Last Seen Location <span className="text-red-400">*</span>
+          </label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <MapPin className="w-5 h-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Kimironko Market, Gasabo"
+                value={form.location}
+                onChange={set("location")}
+                className="w-full pl-11 pr-4 py-3 text-[14px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl outline-none focus:border-blue-400 placeholder-slate-400 text-slate-800 dark:text-slate-200"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setLocating(true);
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                  const lat = pos.coords.latitude;
+                  const lng = pos.coords.longitude;
+                  try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                    const data = await res.json();
+                    setForm(p => ({ ...p, latitude: lat, longitude: lng, location: data.display_name || `${lat}, ${lng}` }));
+                  } catch {
+                    setForm(p => ({ ...p, latitude: lat, longitude: lng, location: `${lat}, ${lng}` }));
+                  }
+                  setLocating(false);
+                }, () => setLocating(false));
+              }}
+              disabled={locating}
+              type="button"
+              className="px-4 py-3 bg-blue-50 text-blue-700 font-bold text-[13px] rounded-xl border border-blue-200 hover:bg-blue-100 disabled:opacity-50 flex shrink-0 items-center gap-2"
+            >
+              {locating ? "Locating..." : "Get Location"}
+            </button>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Description <span className="text-red-400">*</span></label>
           <textarea value={form.description} onChange={set("description")} rows={4}
             placeholder="Describe what happened, what the child was wearing, any witnesses…"
-            className="w-full px-4 py-3 text-[14px] border border-slate-200 bg-white rounded-xl outline-none focus:border-blue-400 resize-none placeholder-slate-400 text-slate-800" />
+            className="w-full px-4 py-3 text-[14px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl outline-none focus:border-blue-400 resize-none placeholder-slate-400 text-slate-800 dark:text-slate-200" />
         </div>
 
         {/* Photo upload */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Upload Photo / Evidence</label>
-          <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-blue-300 transition-colors cursor-pointer">
+          <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Upload Photo / Evidence</label>
+          <label className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center hover:border-blue-300 transition-colors cursor-pointer block">
+            <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} accept="image/*,video/*,.pdf" />
             <Upload className="w-7 h-7 text-slate-400 mx-auto mb-2" />
-            <p className="text-[13px] text-slate-500 font-medium">Tap to upload photo or evidence</p>
-            <p className="text-[11px] text-slate-400 mt-1">JPG, PNG, PDF · Max 10 MB</p>
-          </div>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 font-medium">
+              {file ? file.name : "Tap to upload photo or evidence"}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">JPG, PNG, PDF, MP4 · Max 2 GB</p>
+          </label>
         </div>
 
         <button onClick={handleSubmit}
@@ -408,39 +469,221 @@ function ReportSection({ onReportCreated }) {
   );
 }
 
-function MyReportsSection({ myReports, isLoading, error }) {
+/* ── View Report Modal ── */
+function ViewReportModal({ report, onClose }) {
+  if (!report) return null;
+  const s = STATUS_STYLES[report.status] || STATUS_STYLES.submitted;
+  const step = ["submitted","verified","under-investigation","resolved"].indexOf(report.status);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(15,23,42,0.55)'}} onClick={onClose}>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <Badge color={report.type==="Missing"?"blue":"red"}>{report.type}</Badge>
+              <span className="font-mono text-[11px] text-slate-400">{report.caseId}</span>
+            </div>
+            <h2 className="text-[17px] font-extrabold text-slate-900 dark:text-white">{report.child || "—"}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+        {/* Status badge */}
+        <div className="px-5 pt-4">
+          <span className={`inline-flex px-3 py-1 rounded-lg text-[12px] font-bold ${s.bg} ${s.text}`}>
+            {report.status.replace(/-/g," ")}
+          </span>
+        </div>
+        {/* Timeline */}
+        <div className="px-5 pt-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Progress</p>
+          <div className="flex items-center gap-1">
+            {TIMELINE_STEPS.map((st, i) => (
+              <div key={st} className="flex items-center flex-1">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold ${
+                  i <= step ? "bg-yellow-500 text-white" : "bg-slate-200 text-slate-400"}`}>
+                  {i < step ? "✓" : i+1}
+                </div>
+                {i < TIMELINE_STEPS.length-1 && (
+                  <div className={`flex-1 h-0.5 mx-0.5 ${i<=step?"bg-yellow-500":"bg-slate-200"}`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            {TIMELINE_STEPS.map(st => (
+              <span key={st} className="text-[9px] text-slate-400 text-center" style={{flex:1}}>{st}</span>
+            ))}
+          </div>
+        </div>
+        {/* Details grid */}
+        <div className="px-5 pt-4 pb-5 grid grid-cols-2 gap-3">
+          {[
+            ["District", report.district],
+            ["Date Submitted", report.date],
+            ["Age", report.age ?? "—"],
+            ["Gender", report.gender || "—"],
+            ["Location", report.location || "—"],
+          ].map(([label, val]) => (
+            <div key={label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">{label}</p>
+              <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-200">{val}</p>
+            </div>
+          ))}
+          <div className="col-span-2 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Description</p>
+            <p className="text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed">{report.description || "—"}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Edit Report Modal ── */
+function EditReportModal({ report, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    childName: report.child || "",
+    age: report.age ?? "",
+    gender: report.gender || "",
+    location: report.location || "",
+    district: report.district || "",
+    description: report.description || "",
+    incidentType: report.type || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  const set = k => e => setForm(p => ({...p, [k]: e.target.value}));
+
+  const handleSave = async () => {
+    if (!form.childName.trim() || !form.description.trim()) {
+      setErr("Child name and description are required.");
+      return;
+    }
+    setSaving(true); setErr("");
+    try {
+      await updateMyReport(report.caseId, form);
+      onSaved();
+      onClose();
+    } catch (e) {
+      setErr(e.message || "Failed to save changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field = "w-full px-3 py-2.5 text-[13px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50 transition";
+  const label = "block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(15,23,42,0.55)'}} onClick={onClose}>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <p className="font-mono text-[11px] text-yellow-600 font-bold">{report.caseId}</p>
+            <h2 className="text-[17px] font-extrabold text-slate-900 dark:text-white">Edit Report</h2>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+        {/* Form */}
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className={label}>Child Name *</label>
+              <input className={field} value={form.childName} onChange={set("childName")} placeholder="Full name" />
+            </div>
+            <div>
+              <label className={label}>Age</label>
+              <input type="number" min="0" max="18" className={field} value={form.age} onChange={set("age")} placeholder="Optional" />
+            </div>
+            <div>
+              <label className={label}>Gender</label>
+              <select className={field} value={form.gender} onChange={set("gender")}>
+                <option value="">—</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className={label}>Location</label>
+              <input className={field} value={form.location} onChange={set("location")} placeholder="Last seen / incident location" />
+            </div>
+            <div className="col-span-2">
+              <label className={label}>District</label>
+              <input className={field} value={form.district} onChange={set("district")} placeholder="e.g. Gasabo" />
+            </div>
+            <div className="col-span-2">
+              <label className={label}>Description *</label>
+              <textarea rows={4} className={`${field} resize-none`} value={form.description} onChange={set("description")} placeholder="Describe the incident..." />
+            </div>
+          </div>
+          {err && <p className="text-[12px] text-red-500 font-medium">{err}</p>}
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition">Cancel</button>
+            <button onClick={handleSave} disabled={saving}
+              className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white disabled:opacity-60 transition"
+              style={{background:'linear-gradient(135deg,#ca8a04,#eab308)'}}>
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MyReportsSection({ myReports, isLoading, error, onRefresh }) {
   const [filter, setFilter] = useState("All");
+  const [viewing, setViewing] = useState(null);
+  const [editing, setEditing] = useState(null);
   const filtered = myReports.filter(r => filter==="All" || r.status===filter);
   return (
     <SectionWrap title="My Reports" sub="All cases you have submitted">
+      {viewing && <ViewReportModal report={viewing} onClose={() => setViewing(null)} />}
+      {editing && <EditReportModal report={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onRefresh?.(); }} />}
       <div className="flex gap-2 flex-wrap">
-        {["All","under-investigation","verified","resolved"].map(f => (
+        {["All","submitted","under-investigation","verified","resolved"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all
-              ${filter===f?"bg-yellow-500 text-white border-yellow-600":"bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
-            {f==="All"?"All":f.replace("-"," ")}
+              ${filter===f?"bg-yellow-500 text-white border-yellow-600":"bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/30"}`}>
+            {f==="All"?"All":f.replace(/-/g," ")}
           </button>
         ))}
       </div>
-      {isLoading && <p className="text-[12px] text-slate-500">Loading reports...</p>}
+      {isLoading && <p className="text-[12px] text-slate-500 dark:text-slate-400">Loading reports...</p>}
       {error && <p className="text-[12px] text-red-500">{error}</p>}
       <div className="space-y-3">
         {filtered.map(r => {
           const s = STATUS_STYLES[r.status] || STATUS_STYLES.submitted;
           const step = ["submitted","verified","under-investigation","resolved"].indexOf(r.status);
           return (
-            <div key={r.caseId} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+            <div key={r.caseId} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge color={r.type==="Missing"?"blue":"red"}>{r.type}</Badge>
                     <span className="font-mono text-[11px] text-slate-400">{r.caseId}</span>
                   </div>
-                  <h3 className="text-[15px] font-extrabold text-slate-800">{r.child}</h3>
+                  <h3 className="text-[15px] font-extrabold text-slate-800 dark:text-slate-200">{r.child}</h3>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800/60 dark:text-slate-300">
+                      Age: {r.age ?? "—"}
+                    </span>
+                    <span className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800/60 dark:text-slate-300">
+                      Gender: {r.gender || "—"}
+                    </span>
+                  </div>
                   <p className="text-[12px] text-slate-400 mt-0.5">{r.district} · {r.date}</p>
                 </div>
                 <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap ${s.bg} ${s.text}`}>
-                  {r.status.replace("-"," ")}
+                  {r.status.replace(/-/g," ")}
                 </span>
               </div>
               {/* Mini timeline */}
@@ -458,11 +701,15 @@ function MyReportsSection({ myReports, isLoading, error }) {
                 ))}
               </div>
               <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-[12px] font-semibold text-slate-700 hover:bg-[var(--simba-bg-main)] transition-colors">
+                <button
+                  onClick={() => setViewing(r)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-[12px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <Eye className="w-3.5 h-3.5" /> View
                 </button>
                 {r.status === "submitted" && (
-                  <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-yellow-200 bg-yellow-50 text-[12px] font-semibold text-yellow-700 hover:bg-blue-100 transition-colors">
+                  <button
+                    onClick={() => setEditing(r)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-yellow-200 bg-yellow-50 text-[12px] font-semibold text-yellow-700 hover:bg-yellow-100 transition-colors">
                     <Edit2 className="w-3.5 h-3.5" /> Edit
                   </button>
                 )}
@@ -471,7 +718,7 @@ function MyReportsSection({ myReports, isLoading, error }) {
           );
         })}
         {!isLoading && !error && filtered.length === 0 && (
-          <p className="text-[12px] text-slate-500">No reports found for this filter.</p>
+          <p className="text-[12px] text-slate-500 dark:text-slate-400">No reports found for this filter.</p>
         )}
       </div>
     </SectionWrap>
@@ -500,11 +747,11 @@ function TrackSection() {
   };
   return (
     <SectionWrap title="Track Your Case" sub="Enter a case ID to see the latest status and updates.">
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <div className="relative">
           <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input value={caseId} onChange={e => setCaseId(e.target.value)} placeholder="e.g. CW-2026-041"
-            className="w-full pl-10 pr-4 py-3 text-[14px] border border-slate-200 bg-white rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 placeholder-slate-400 font-mono" />
+            className="w-full pl-10 pr-4 py-3 text-[14px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 placeholder-slate-400 font-mono" />
         </div>
         <button onClick={handleTrack} disabled={loading}
           className="w-full flex items-center justify-center gap-2 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-[14px] rounded-xl transition-colors">
@@ -514,11 +761,11 @@ function TrackSection() {
       </div>
 
       {result && (
-        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="font-mono text-[12px] text-yellow-600 font-bold mb-1">{result.caseId}</p>
-              <h3 className="text-[16px] font-extrabold text-slate-900">{result.child}</h3>
+              <h3 className="text-[16px] font-extrabold text-slate-900 dark:text-white">{result.child}</h3>
               <p className="text-[12px] text-slate-400">{result.district} · {formatDateDisplay(result.createdAt)}</p>
             </div>
             <Badge color={result.type==="Missing"?"blue":"red"}>{result.type}</Badge>
@@ -534,7 +781,7 @@ function TrackSection() {
 
           {/* Full timeline */}
           <div>
-            <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-3">Status Timeline</p>
+            <p className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Status Timeline</p>
             <div className="space-y-0">
               {result.updates.map((u, i) => (
                 <div key={u.step} className="flex gap-4">
@@ -546,7 +793,7 @@ function TrackSection() {
                     {i < result.updates.length-1 && <div className={`w-px flex-1 my-1 ${u.done?"bg-blue-200":"bg-slate-200"}`} />}
                   </div>
                   <div className="pb-4 pt-0.5">
-                    <p className={`text-[13px] font-bold ${u.done?"text-slate-800":"text-slate-400"}`}>{u.step}</p>
+                    <p className={`text-[13px] font-bold ${u.done?"text-slate-800 dark:text-slate-200":"text-slate-400"}`}>{u.step}</p>
                     <p className="text-[11px] text-slate-400">{u.date === "—" ? u.date : formatDateTimeDisplay(u.date)}</p>
                   </div>
                 </div>
@@ -596,26 +843,26 @@ function NotificationsSection({
         <button onClick={onMarkAllRead}
           className="text-[12px] font-semibold text-yellow-600 hover:text-blue-800">Mark all read</button>
       </div>
-      {loading && <p className="text-[12px] text-slate-500">Loading notifications...</p>}
+      {loading && <p className="text-[12px] text-slate-500 dark:text-slate-400">Loading notifications...</p>}
       {error && <p className="text-[12px] text-red-500">{error}</p>}
       <div className="space-y-2">
         {notifications.map(n => (
           <div key={n.id}
             className={`flex gap-3 p-4 rounded-xl border transition-colors cursor-pointer
-              ${n.read ? "bg-white border-slate-100" : "bg-yellow-50/50 border-blue-100"}`}
+              ${n.read ? "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800" : "bg-yellow-50/50 border-blue-100"}`}
             onClick={() => onMarkRead(n.id)}>
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${TYPE_BG[n.type]}`}>
               {TYPE_ICON[n.type] || TYPE_ICON.update}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-[13px] leading-relaxed ${n.read?"text-slate-600":"text-slate-800 font-semibold"}`}>{n.msg}</p>
+              <p className={`text-[13px] leading-relaxed ${n.read?"text-slate-600 dark:text-slate-400":"text-slate-800 dark:text-slate-200 font-semibold"}`}>{n.msg}</p>
               <p className="text-[11px] text-slate-400 mt-1">{n.time}</p>
             </div>
             {!n.read && <div className="w-2 h-2 rounded-full bg-yellow-500 shrink-0 mt-1.5" />}
           </div>
         ))}
         {!loading && !error && notifications.length === 0 && (
-          <p className="text-[12px] text-slate-500">No notifications yet.</p>
+          <p className="text-[12px] text-slate-500 dark:text-slate-400">No notifications yet.</p>
         )}
       </div>
     </SectionWrap>
@@ -649,19 +896,19 @@ function EmergencySection() {
 
       <div className="grid grid-cols-2 gap-4">
         <a href="tel:+250785555000"
-          className="flex flex-col items-center gap-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
             <Phone className="w-6 h-6 text-yellow-700" />
           </div>
-          <p className="text-[13px] font-bold text-slate-800">Call Hotline</p>
+          <p className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Call Hotline</p>
           <p className="text-[11px] text-slate-400">+250 785 555 000</p>
         </a>
         <button onClick={() => {}}
-          className="flex flex-col items-center gap-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
             <Zap className="w-6 h-6 text-yellow-700" />
           </div>
-          <p className="text-[13px] font-bold text-slate-800">Quick Report</p>
+          <p className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Quick Report</p>
           <p className="text-[11px] text-slate-400">Skip long forms</p>
         </button>
       </div>
@@ -674,9 +921,9 @@ function EvidenceSection({ myReports }) {
     <SectionWrap title="Upload Evidence" sub="Add images, documents, or audio to your case">
       <div className="space-y-3">
         {myReports.map(r => (
-          <div key={r.caseId} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+          <div key={r.caseId} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
             <p className="text-[12px] font-mono text-yellow-600 font-bold mb-0.5">{r.caseId}</p>
-            <p className="text-[14px] font-bold text-slate-800 mb-3">{r.child}</p>
+            <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200 mb-3">{r.child}</p>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { icon:<Image className="w-5 h-5" />, label:"Photo",    color:"bg-yellow-50 text-yellow-600"  },
@@ -684,7 +931,7 @@ function EvidenceSection({ myReports }) {
                 { icon:<Mic className="w-5 h-5" />,   label:"Audio",    color:"bg-amber-50 text-amber-600"},
               ].map(item => (
                 <button key={item.label}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-slate-200 hover:border-blue-300 transition-colors ${item.color}`}>
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-300 transition-colors ${item.color}`}>
                   {item.icon}
                   <span className="text-[11px] font-semibold">{item.label}</span>
                 </button>
@@ -693,7 +940,7 @@ function EvidenceSection({ myReports }) {
           </div>
         ))}
         {myReports.length === 0 && (
-          <p className="text-[12px] text-slate-500">Create a report first to attach evidence.</p>
+          <p className="text-[12px] text-slate-500 dark:text-slate-400">Create a report first to attach evidence.</p>
         )}
       </div>
     </SectionWrap>
@@ -705,12 +952,12 @@ function AwarenessSection() {
     <SectionWrap title="Safety & Awareness" sub="Child protection tips and what to do in emergencies">
       <div className="space-y-4">
         {AWARENESS_TIPS.map(tip => (
-          <div key={tip.title} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+          <div key={tip.title} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div className="flex gap-3">
               <span className="text-2xl shrink-0">{tip.icon}</span>
               <div>
-                <h3 className="text-[14px] font-extrabold text-slate-800 mb-2">{tip.title}</h3>
-                <p className="text-[13px] text-slate-600 leading-[1.7]">{tip.body}</p>
+                <h3 className="text-[14px] font-extrabold text-slate-800 dark:text-slate-200 mb-2">{tip.title}</h3>
+                <p className="text-[13px] text-slate-600 dark:text-slate-400 leading-[1.7]">{tip.body}</p>
               </div>
             </div>
           </div>
@@ -766,11 +1013,11 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
         </div>
       )}
       {/* Avatar */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-4 mb-5">
           <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-extrabold text-yellow-700">{initials || "RP"}</div>
           <div>
-            <p className="text-[16px] font-extrabold text-slate-900">{profile.name}</p>
+            <p className="text-[16px] font-extrabold text-slate-900 dark:text-white">{profile.name}</p>
             <p className="text-[12px] text-slate-400">{formatRoleLabel(profile.role)} · {profile.district}</p>
             <Badge color="green">Verified Account</Badge>
           </div>
@@ -780,17 +1027,17 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
           <div className="space-y-4">
             {[["Full Name","name","text",User],["Email","email","email",Mail],["Phone","phone","tel",Phone]].map(([lbl,key,type,Icon]) => (
               <div key={key}>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">{lbl}</label>
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">{lbl}</label>
                 <div className="relative">
                   <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input type={type} value={profile[key]} onChange={set(key)}
-                    className="w-full pl-10 pr-4 py-2.5 text-[13px] border border-slate-200 rounded-xl outline-none focus:border-blue-400 bg-white" />
+                    className="w-full pl-10 pr-4 py-2.5 text-[13px] border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-blue-400 bg-white dark:bg-slate-900" />
                 </div>
               </div>
             ))}
             <div className="flex gap-3">
               <button onClick={() => setEdit(false)}
-                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-[var(--simba-bg-main)]">
+                className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-[13px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-800/30">
                 Cancel
               </button>
               <button onClick={() => setEdit(false)}
@@ -802,9 +1049,9 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
         ) : (
           <>
             {[{icon:Mail,v:profile.email},{icon:Phone,v:profile.phone},{icon:MapPin,v:profile.district}].map(({icon:Icon,v}) => (
-              <div key={v} className="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-0">
+              <div key={v} className="flex items-center gap-3 py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
                 <Icon className="w-4 h-4 text-slate-400" />
-                <span className="text-[13px] text-slate-700">{v}</span>
+                <span className="text-[13px] text-slate-700 dark:text-slate-300">{v}</span>
               </div>
             ))}
             <button onClick={() => setEdit(true)}
@@ -816,16 +1063,16 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
       </div>
 
       {/* Language */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-2.5 mb-3">
-          <Globe className="w-4 h-4 text-slate-500" />
-          <p className="font-bold text-slate-800 text-[14px]">Language</p>
+          <Globe className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <p className="font-bold text-slate-800 dark:text-slate-200 text-[14px]">Language</p>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {LANGS.map(l => (
             <button key={l} onClick={() => setLang(l)}
               className={`py-2 rounded-lg text-[12px] font-semibold border transition-all
-                ${lang===l?"bg-yellow-500 text-white border-yellow-600":"bg-white text-slate-600 border-slate-200 hover:bg-[var(--simba-bg-main)]"}`}>
+                ${lang===l?"bg-yellow-500 text-white border-yellow-600":"bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/30"}`}>
               {l}
             </button>
           ))}
@@ -833,11 +1080,11 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
       </div>
 
       {/* Security */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-        <p className="font-bold text-slate-800 text-[14px] mb-3">Security</p>
-        <button className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--simba-bg-main)] hover:bg-slate-100 transition-colors text-left">
-          <Lock className="w-4 h-4 text-slate-500" />
-          <span className="text-[13px] font-semibold text-slate-700">Change Password</span>
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <p className="font-bold text-slate-800 dark:text-slate-200 text-[14px] mb-3">Security</p>
+        <button className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100 transition-colors text-left">
+          <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-300">Change Password</span>
           <ChevronRight className="w-4 h-4 text-slate-400 ml-auto" />
         </button>
       </div>
@@ -855,12 +1102,13 @@ function ProfileSection({ onSignOut, profileData, isProfileLoading, profileError
 // ── Main App ─────────────────────────────────────────────────────
 export default function Reporter() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [active, setActive] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
   const [profileData, setProfileData] = useState(() => normalizeUserProfile(getAuthProfile()));
-  const [myReports, setMyReports] = useState(() => MY_REPORTS.map(normalizeReport));
+  const [myReports, setMyReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportsError, setReportsError] = useState("");
   const [notifications, setNotifications] = useState([]);
@@ -969,7 +1217,7 @@ export default function Reporter() {
   const SECTIONS = {
     home:          <HomeSection onNav={setActive} profileData={profileData} isProfileLoading={profileLoading} myReports={myReports} />,
     report:        <ReportSection onReportCreated={refreshDashboardData} />,
-    "my-reports":  <MyReportsSection myReports={myReports} isLoading={reportsLoading} error={reportsError} />,
+    "my-reports":  <MyReportsSection myReports={myReports} isLoading={reportsLoading} error={reportsError} onRefresh={loadReports} />,
     track:         <TrackSection />,
     notifications: (
       <NotificationsSection
@@ -983,18 +1231,11 @@ export default function Reporter() {
     emergency:     <EmergencySection />,
     evidence:      <EvidenceSection myReports={myReports} />,
     awareness:     <AwarenessSection />,
-    profile:       (
-      <ProfileSection
-        onSignOut={handleSignOut}
-        profileData={profileData}
-        isProfileLoading={profileLoading}
-        profileError={profileError}
-      />
-    ),
+    profile:       <ProfilePage accentColor="blue" />,
   };
 
   return (
-    <div className="flex h-screen bg-[var(--simba-bg-main)] overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden font-sans">
 
       {/* ── Sidebar (desktop) ── */}
       <>
@@ -1002,10 +1243,10 @@ export default function Reporter() {
           <div className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
             onClick={() => setSidebarOpen(false)} />
         )}
-        <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 xl:w-64 bg-white border-r border-slate-100 flex flex-col
+        <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 xl:w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col
           transition-transform duration-300 lg:translate-x-0 ${sidebarOpen?"translate-x-0":"-translate-x-full"}`}>
 
-          <div className="px-5 py-5 border-b border-slate-100">
+          <div className="px-5 py-5 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center shadow-sm">
                 <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
@@ -1026,18 +1267,18 @@ export default function Reporter() {
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all relative
                     ${isActive
                       ? "bg-yellow-500 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-[var(--simba-bg-main)] hover:text-slate-900"}`}>
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/30 hover:text-slate-900 dark:text-white"}`}>
                   <Icon className="w-4 h-4 shrink-0" />
                   {item.label}
                   {item.id==="notifications" && unreadCount>0 && (
                     <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full
-                      ${isActive?"bg-white/20 text-white":"bg-red-500 text-white"}`}>
+                      ${isActive?"bg-white dark:bg-slate-900/20 text-white":"bg-red-500 text-white"}`}>
                       {unreadCount}
                     </span>
                   )}
                   {item.id==="emergency" && (
                     <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse
-                      ${isActive?"bg-white/20 text-white":"bg-red-100 text-red-600"}`}>
+                      ${isActive?"bg-white dark:bg-slate-900/20 text-white":"bg-red-100 text-red-600"}`}>
                       SOS
                     </span>
                   )}
@@ -1046,13 +1287,13 @@ export default function Reporter() {
             })}
           </nav>
 
-          <div className="px-4 pb-5 pt-3 border-t border-slate-100">
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--simba-bg-main)]">
+          <div className="px-4 pb-5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/30">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                 <span className="text-[11px] font-bold text-yellow-700">{initials}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-bold text-slate-800 truncate">{displayName}</p>
+                <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 truncate">{displayName}</p>
                 <p className="text-[10px] text-slate-400">{roleLabel}</p>
               </div>
             </div>
@@ -1064,18 +1305,22 @@ export default function Reporter() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Top bar */}
-        <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-6 shrink-0">
+        <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0 z-50 relative">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
-              <Menu className="w-5 h-5 text-slate-600" />
+              <Menu className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             </button>
-            <h1 className="text-[14px] font-extrabold text-slate-800">
+            <h1 className="text-[14px] font-extrabold text-slate-800 dark:text-slate-200">
               {NAV_ITEMS.find(n => n.id === active)?.label}
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setActive("notifications")} className="relative p-2 rounded-lg hover:bg-slate-100">
-              <Bell className="w-5 h-5 text-slate-500" />
+            <LanguageSwitcher />
+            <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400">
+              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button onClick={() => setActive("notifications")} className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+              <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />}
             </button>
             <button onClick={() => setActive("emergency")}
@@ -1085,7 +1330,7 @@ export default function Reporter() {
             </button>
             <button
               onClick={handleSignOut}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 dark:text-slate-400 transition-colors"
               title="Sign out"
             >
               <LogOut className="w-4 h-4" />
@@ -1099,7 +1344,7 @@ export default function Reporter() {
         </main>
 
         {/* ── Mobile bottom nav ── */}
-        <div className="lg:hidden border-t border-slate-100 bg-white flex items-center justify-around px-2 py-2 shrink-0">
+        <div className="lg:hidden border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-around px-2 py-2 shrink-0">
           {[
             { id:"home",         icon:Home,          label:"Home"    },
             { id:"report",       icon:Plus,           label:"Report"  },
@@ -1126,4 +1371,5 @@ export default function Reporter() {
     </div>
   );
 }
+
 

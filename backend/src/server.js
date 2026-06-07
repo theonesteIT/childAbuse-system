@@ -42,17 +42,7 @@ const envOrigins = (process.env.CORS_ORIGIN || "")
 
 const allowedOrigins = envOrigins.length > 0 ? envOrigins : defaultAllowedOrigins;
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error("CORS origin not allowed"));
-    },
-  })
-);
+app.use(cors());
 app.use(express.json());
 
 app.use(
@@ -123,12 +113,12 @@ async function ensureDatabaseSchema() {
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS role VARCHAR(60) NOT NULL DEFAULT 'parent'");
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS district VARCHAR(80) NOT NULL DEFAULT 'Kigali'");
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1");
-  await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS google_id VARCHAR(120) NULL UNIQUE");
-
-  // Extra columns for community reports
-  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS incident_type VARCHAR(120) NULL");
-  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS urgency VARCHAR(20) NOT NULL DEFAULT 'normal'");
-  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS sector VARCHAR(120) NULL");
+  await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS google_id VARCHAR(120) NULL");
+  try {
+    await pool.query("CREATE UNIQUE INDEX idx_google_id ON managed_users(google_id)");
+  } catch (e) {
+    // Ignore error if index already exists
+  }
 
 
   await pool.query(`
@@ -180,6 +170,10 @@ async function ensureDatabaseSchema() {
   `);
 
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS user_id INT NULL");
+  // Extra columns for community reports
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS incident_type VARCHAR(120) NULL");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS urgency VARCHAR(20) NOT NULL DEFAULT 'normal'");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS sector VARCHAR(120) NULL");
   await pool.query("ALTER TABLE reporter_reports MODIFY COLUMN user_id INT NULL");
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS report_type VARCHAR(20) NOT NULL DEFAULT 'Missing'");
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS child_name VARCHAR(120) NOT NULL DEFAULT 'Unknown'");
@@ -217,9 +211,29 @@ async function ensureDatabaseSchema() {
       author_name VARCHAR(120) NOT NULL DEFAULT 'System',
       status VARCHAR(40) NULL,
       comment TEXT NULL,
+      note_type VARCHAR(40) NOT NULL DEFAULT 'update',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_case_updates_case (case_id),
       INDEX idx_case_updates_report (report_id)
+    )
+  `);
+
+  await pool.query("ALTER TABLE case_updates ADD COLUMN IF NOT EXISTS note_type VARCHAR(40) NOT NULL DEFAULT 'update'");
+
+  // ── social_assessments ─────────────────────────────────────────
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS social_assessments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      report_id INT NOT NULL,
+      case_id VARCHAR(40) NOT NULL,
+      social_worker_id INT NOT NULL,
+      physical_safety TEXT NULL,
+      psychological_state TEXT NULL,
+      family_environment TEXT NULL,
+      recommendation TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_social_assessments_report (report_id),
+      INDEX idx_social_assessments_worker (social_worker_id)
     )
   `);
 

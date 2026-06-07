@@ -8,16 +8,13 @@ import {
   User, Mail, Phone, Lock, Eye, EyeOff,
   Users, Shield, CheckCircle2, AlertCircle, ChevronLeft, ArrowRight,
 } from "lucide-react";
-import { BrandPanel, MobileTopBar, Field, Spinner } from "./Authshared";
+import { BrandPanel, MobileTopBar, Field, Spinner, ThemeToggle } from "./Authshared";
 import { registerUser } from "../services/authApi";
 
 /* ── Role options ── */
 const ROLES = [
-  { value: "parent",    label: "Parent / Guardian"       },
-  { value: "community", label: "Community Member"        },
-  { value: "police",    label: "Police / Response Team"  },
-  { value: "social",    label: "Social Worker"           },
-  { value: "hospital",  label: "Hospital / Medical"      },
+  { value: "Parent/Reporter", label: "Parent / Guardian" },
+  { value: "Community Member", label: "Community Member" },
 ];
 
 /* ── Password strength scorer ── */
@@ -59,7 +56,7 @@ function StepBar({ step }) {
                 ? "ring-2 ring-yellow-200 shadow-sm"
                 : step > s
                   ? ""
-                  : "bg-slate-200 text-slate-500"}`}
+                  : "bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}
             style={step === s
               ? { background: '#F4B400', color: '#111827' }
               : step > s
@@ -71,11 +68,11 @@ function StepBar({ step }) {
               : s}
           </div>
           <span className={`text-[12px] font-semibold transition-colors
-            ${step === s ? "text-yellow-700" : step > s ? "text-green-500" : "text-slate-400"}`}>
+            ${step === s ? "text-yellow-700 dark:text-amber-500" : step > s ? "text-green-500" : "text-slate-400 dark:text-slate-500"}`}>
             {s === 1 ? "Your info" : "Security"}
           </span>
           {idx < 1 && (
-            <div className={`w-10 h-px transition-colors ${step > 1 ? "bg-yellow-400" : "bg-slate-200"}`} />
+            <div className={`w-10 h-px transition-colors ${step > 1 ? "bg-yellow-400" : "bg-slate-200 dark:bg-slate-800"}`} />
           )}
         </div>
       ))}
@@ -168,7 +165,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--simba-bg-main)' }}>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950">
 
       {/* ── Mobile top bar ── */}
       <MobileTopBar
@@ -184,7 +181,8 @@ export default function Register() {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 flex items-start lg:items-center justify-center px-5 sm:px-10 py-12 lg:py-8">
+      <div className="relative flex-1 flex items-start lg:items-center justify-center px-5 sm:px-10 py-12 lg:py-8">
+        <ThemeToggle className="hidden lg:inline-flex absolute right-6 top-6" />
         <div className="w-full max-w-[420px]">
 
           {/* ── Page heading ── */}
@@ -193,22 +191,22 @@ export default function Register() {
               <span className="block w-4 h-px bg-yellow-400" />
               Create account
             </span>
-            <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 leading-tight">
+            <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-tight">
               Join Childwatch
             </h1>
-            <p className="text-[13px] text-slate-500 mt-1.5 leading-relaxed">
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
               Start protecting children in your community today.
             </p>
           </div>
 
           {/* ── Success ── */}
           {success ? (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-7 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-7 text-center dark:bg-green-500/10 dark:border-green-500/30">
               <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-7 h-7 text-green-600" />
               </div>
-              <h3 className="text-[17px] font-extrabold text-green-800 mb-2">Account created!</h3>
-              <p className="text-[13px] text-green-600 leading-relaxed mb-6">
+              <h3 className="text-[17px] font-extrabold text-green-800 dark:text-green-400 mb-2">Account created!</h3>
+              <p className="text-[13px] text-green-600 dark:text-green-300 leading-relaxed mb-6">
                 Welcome to Childwatch,{" "}
                 <span className="font-semibold">{form.fullName.split(" ")[0]}</span>!
                 Your account is ready. Redirecting you to login...
@@ -259,11 +257,11 @@ export default function Register() {
 
                   {/* Role select */}
                   <div className="space-y-1.5">
-                    <label className="block text-[12px] font-bold text-slate-500 tracking-widest uppercase">
+                    <label className="block text-[12px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">
                       Your role
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
                         <Users className="w-4 h-4" />
                       </div>
                       <select
@@ -272,16 +270,16 @@ export default function Register() {
                         className={`w-full pl-10 pr-9 py-3 text-[14px] rounded-xl border outline-none
                           appearance-none cursor-pointer transition-all
                           ${errors.role
-                            ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                            : "border-slate-200 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50"}
-                          ${!form.role ? "text-slate-400" : "text-slate-800"}`}
+                            ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-red-500/40 dark:bg-red-500/10"
+                            : "border-slate-200 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-50 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-blue-400 dark:focus:ring-blue-500/10"}
+                          ${!form.role ? "text-slate-400 dark:text-slate-500" : "text-slate-800 dark:text-slate-200"}`}
                       >
                         <option value="" disabled>Select your role</option>
                         {ROLES.map((r) => (
                           <option key={r.value} value={r.value}>{r.label}</option>
                         ))}
                       </select>
-                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -315,7 +313,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-400
+                    className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-400 dark:text-slate-500
                       hover:text-yellow-700 transition-colors mb-1"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Back to your info
@@ -350,14 +348,14 @@ export default function Register() {
                           <div
                             key={i}
                             className={`h-1 flex-1 rounded-full transition-all duration-300
-                              ${i <= strength ? STRENGTH_COLOR[strength] : "bg-slate-200"}`}
+                              ${i <= strength ? STRENGTH_COLOR[strength] : "bg-slate-200 dark:bg-slate-800"}`}
                           />
                         ))}
                       </div>
                       <p className={`text-[11px] font-semibold ${STRENGTH_TEXT[strength]}`}>
                         {STRENGTH_LABEL[strength]} password
                         {strength < 3 && (
-                          <span className="text-slate-400 font-normal ml-1">
+                          <span className="text-slate-400 dark:text-slate-500 font-normal ml-1">
                             — add uppercase, numbers or symbols
                           </span>
                         )}
@@ -392,7 +390,7 @@ export default function Register() {
                       <button
                         type="button"
                         onClick={() => setAgreed(!agreed)}
-                        className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${agreed ? "border-yellow-500" : "border-slate-300 bg-white"}`}
+                        className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${agreed ? "border-yellow-500" : "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900"}`}
                       style={agreed ? { background: '#F4B400' } : {}}
                         aria-pressed={agreed}
                       >
@@ -402,7 +400,7 @@ export default function Register() {
                           </svg>
                         )}
                       </button>
-                      <span className="text-[12px] text-slate-600 leading-[1.65]">
+                      <span className="text-[12px] text-slate-600 dark:text-slate-300 leading-[1.65]">
                         I agree to the{" "}
                          <a href="/terms" className="font-semibold text-yellow-700 hover:underline">
                           Terms of Service
@@ -442,7 +440,7 @@ export default function Register() {
               )}
 
               {/* ── Switch to Login ── */}
-              <p className="text-center text-[13px] text-slate-500 mt-8">
+              <p className="text-center text-[13px] text-slate-500 dark:text-slate-400 mt-8">
                 Already have an account?{" "}
                 <Link to="/login" className="font-bold text-yellow-700 hover:text-yellow-900 transition-colors">
                   Sign in →
@@ -453,7 +451,7 @@ export default function Register() {
 
           {/* ── Footer note ── */}
           {!success && (
-            <p className="text-center text-[11px] text-slate-400 mt-5 leading-relaxed">
+            <p className="text-center text-[11px] text-slate-400 dark:text-slate-500 mt-5 leading-relaxed">
               Your data is encrypted and protected under Rwanda&rsquo;s data privacy regulations.
             </p>
           )}

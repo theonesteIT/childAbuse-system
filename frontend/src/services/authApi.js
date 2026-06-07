@@ -41,46 +41,62 @@ async function authRequest(path, options = {}) {
 }
 
 export function signupAdmin(payload) {
-  return request("/admin/signup", {
+  return request("/auth/signup", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function loginAdmin(payload) {
-  return request("/admin/login", {
+  return request("/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function registerUser(payload) {
-  return request("/admin/user-register", {
+  return request("/auth/user-register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function loginUser(payload) {
-  return request("/admin/user-login", {
+  return request("/auth/user-login", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function getMyAccount() {
-  return authRequest("/admin/me");
+  return authRequest("/auth/me");
+}
+
+/** Update own profile (name, phone, district) */
+export function updateProfile(payload) {
+  return authRequest("/auth/profile", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** Change own password */
+export function changePassword(payload) {
+  return authRequest("/auth/change-password", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function requestPasswordReset(payload) {
-  return request("/admin/forgot-password", {
+  return request("/auth/forgot-password", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export function resetPassword(payload) {
-  return request("/admin/reset-password", {
+  return request("/auth/reset-password", {
     method: "POST",
     body: JSON.stringify(payload),
   });
