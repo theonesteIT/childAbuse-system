@@ -24,6 +24,9 @@ function toClientReport(row) {
     reporterId: row.user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    priority: row.priority,
+    assignedTo: row.assigned_to_name,
+    images: row.images ? row.images.split("||").filter(Boolean) : [],
   };
 }
 
@@ -42,24 +45,28 @@ router.get("/", async (req, res) => {
   const q = String(req.query.q || "").trim();
 
   try {
-    let sql = `SELECT id, case_id, user_id, report_type, child_name, child_age, child_gender, last_seen_location,
-                      description, district, status, is_anonymous, created_at, updated_at
-               FROM reporter_reports
+    let sql = `SELECT r.id, r.case_id, r.user_id, r.report_type, r.child_name, r.child_age, r.child_gender, r.last_seen_location,
+                      r.description, r.district, r.status, r.is_anonymous, r.created_at, r.updated_at, r.priority,
+                      ca.assigned_to_name,
+                      GROUP_CONCAT(att.file_url SEPARATOR '||') as images
+               FROM reporter_reports r
+               LEFT JOIN case_assignments ca ON r.case_id = ca.case_id
+               LEFT JOIN attachments att ON r.case_id = att.case_id
                WHERE 1=1`;
     const params = [];
 
     if (status) {
-      sql += " AND status = ?";
+      sql += " AND r.status = ?";
       params.push(status);
     }
 
     if (q) {
-      sql += " AND (case_id LIKE ? OR child_name LIKE ? OR district LIKE ?)";
+      sql += " AND (r.case_id LIKE ? OR r.child_name LIKE ? OR r.district LIKE ?)";
       const like = `%${q}%`;
       params.push(like, like, like);
     }
 
-    sql += " ORDER BY created_at DESC";
+    sql += " GROUP BY r.id ORDER BY r.created_at DESC";
 
     const [rows] = await pool.query(sql, params);
     return res.json({ reports: rows.map(toClientReport) });
@@ -93,10 +100,15 @@ router.patch("/:id/status", async (req, res) => {
     await createStatusNotification(report.user_id, report.id, report.case_id, status);
 
     const [updatedRows] = await pool.query(
-      `SELECT id, case_id, user_id, report_type, child_name, child_age, child_gender, last_seen_location,
-              description, district, status, is_anonymous, created_at, updated_at
-       FROM reporter_reports
-       WHERE id = ?
+      `SELECT r.id, r.case_id, r.user_id, r.report_type, r.child_name, r.child_age, r.child_gender, r.last_seen_location,
+              r.description, r.district, r.status, r.is_anonymous, r.created_at, r.updated_at, r.priority,
+              ca.assigned_to_name,
+              GROUP_CONCAT(att.file_url SEPARATOR '||') as images
+       FROM reporter_reports r
+       LEFT JOIN case_assignments ca ON r.case_id = ca.case_id
+       LEFT JOIN attachments att ON r.case_id = att.case_id
+       WHERE r.id = ?
+       GROUP BY r.id
        LIMIT 1`,
       [req.params.id],
     );

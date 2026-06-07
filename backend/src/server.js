@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import session from "express-session";
+import passport from "./middleware/passport.js";
 import pool from "./db.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminUsersRoutes from "./routes/adminUsersRoutes.js";
@@ -13,6 +15,14 @@ import caseNotesRoutes from "./routes/caseNotesRoutes.js";
 import caseAssignmentRoutes from "./routes/caseAssignmentRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import publicRoutes from "./routes/publicRoutes.js";
+import adminAuditRoutes from "./routes/adminAuditRoutes.js";
+import adminStatsRoutes from "./routes/adminStatsRoutes.js";
+import adminAnalyticsRoutes from "./routes/adminAnalyticsRoutes.js";
+import adminAlertsRoutes from "./routes/adminAlertsRoutes.js";
+import adminExportRoutes from "./routes/adminExportRoutes.js";
+import adminInstitutionsRoutes from "./routes/adminInstitutionsRoutes.js";
+import institutionRoutes from "./routes/institutionRoutes.js";
 
 dotenv.config();
 
@@ -41,15 +51,25 @@ app.use(
       }
       callback(new Error("CORS origin not allowed"));
     },
-  }),
+  })
 );
 app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "fallback_secret_for_dev",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/admin", authRoutes);
+app.use("/api/auth", authRoutes); // Moved from /api/admin
 app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/admin/reports", adminReportsRoutes);
 app.use("/api/reporter", reporterRoutes);
@@ -60,6 +80,14 @@ app.use("/api/cases", caseNotesRoutes);
 app.use("/api/admin/assignments", caseAssignmentRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/public", publicRoutes);
+app.use("/api/admin/audit-logs", adminAuditRoutes);
+app.use("/api/admin/stats", adminStatsRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/admin/alerts", adminAlertsRoutes);
+app.use("/api/admin/export", adminExportRoutes);
+app.use("/api/admin/institutions", adminInstitutionsRoutes);
+app.use("/api/institution", institutionRoutes);
 
 app.get("/", (_req, res) => {
   res.send("Childwatch backend is running");
@@ -95,6 +123,13 @@ async function ensureDatabaseSchema() {
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS role VARCHAR(60) NOT NULL DEFAULT 'parent'");
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS district VARCHAR(80) NOT NULL DEFAULT 'Kigali'");
   await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1");
+  await pool.query("ALTER TABLE managed_users ADD COLUMN IF NOT EXISTS google_id VARCHAR(120) NULL UNIQUE");
+
+  // Extra columns for community reports
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS incident_type VARCHAR(120) NULL");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS urgency VARCHAR(20) NOT NULL DEFAULT 'normal'");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS sector VARCHAR(120) NULL");
+
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -168,6 +203,8 @@ async function ensureDatabaseSchema() {
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS abuse_type VARCHAR(60) NULL");
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS suspect_info TEXT NULL");
   await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS reporter_relationship VARCHAR(80) NULL");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8) NULL");
+  await pool.query("ALTER TABLE reporter_reports ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8) NULL");
 
   // ── case_updates (notes + status history) ─────────────────────
   await pool.query(`
@@ -211,12 +248,14 @@ async function ensureDatabaseSchema() {
       file_url VARCHAR(500) NOT NULL,
       file_type VARCHAR(40) NOT NULL DEFAULT 'document',
       file_name VARCHAR(255) NOT NULL,
-      uploaded_by_id INT NOT NULL,
+      uploaded_by_id INT NULL,
       uploaded_by_name VARCHAR(120) NOT NULL DEFAULT 'Unknown',
       uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_attachments_report (report_id)
     )
   `);
+
+  await pool.query("ALTER TABLE attachments MODIFY COLUMN uploaded_by_id INT NULL");
 
   // ── audit_logs ─────────────────────────────────────────────────
   await pool.query(`

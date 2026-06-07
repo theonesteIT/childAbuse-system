@@ -12,12 +12,15 @@ function toClientReport(row) {
     id: row.id,
     caseId: row.case_id,
     type: row.report_type,
+    incidentType: row.incident_type || row.report_type,
     child: row.child_name,
     age: row.child_age,
     gender: row.child_gender,
     location: row.last_seen_location,
+    sector: row.sector || null,
     description: row.description,
     district: row.district,
+    urgency: row.urgency || "normal",
     status: row.status,
     anonymous: Boolean(row.is_anonymous),
     publicContact: row.public_contact || null,
@@ -72,23 +75,25 @@ function normalizeAnonymous(value) {
 }
 
 function validateReportPayload(payload, { requireReporterIdentity = false } = {}) {
-  const type = String(payload.type || "").trim();
+  // Support both type (legacy) and incidentType (community form)
+  const type = String(payload.type || payload.incidentType || "Community Report").trim();
   const childName = String(payload.childName || "").trim();
-  const location = String(payload.location || "").trim();
+  const location = String(payload.location || payload.sector || payload.district || "").trim();
   const description = String(payload.description || "").trim();
   const district = String(payload.district || "").trim();
-  const reporterContact = String(payload.reporterContact || "").trim();
-  const anonymous = normalizeAnonymous(payload.anonymous);
+  const sector = String(payload.sector || "").trim() || null;
+  const incidentType = String(payload.incidentType || "").trim() || null;
+  const urgency = ["normal", "urgent", "critical"].includes(payload.urgency) ? payload.urgency : "normal";
+  const reporterContact = String(payload.reporterContact || payload.contactPhone || "").trim();
+  const anonymous = normalizeAnonymous(payload.anonymous ?? payload.isAnonymous ?? false);
   const ageRaw = payload.age;
   const age = ageRaw === "" || ageRaw === null || ageRaw === undefined ? null : Number(ageRaw);
   const gender = String(payload.gender || "").trim() || null;
+  const latitude = payload.latitude != null ? Number(payload.latitude) : null;
+  const longitude = payload.longitude != null ? Number(payload.longitude) : null;
 
-  if (!type || !childName || !location || !description) {
-    return { error: "type, childName, location and description are required" };
-  }
-
-  if (!ALLOWED_REPORT_TYPES.includes(type)) {
-    return { error: "type must be either Missing or Abuse" };
+  if (!description) {
+    return { error: "description is required" };
   }
 
   if (age !== null && (!Number.isFinite(age) || age < 0 || age > 120)) {
@@ -102,14 +107,19 @@ function validateReportPayload(payload, { requireReporterIdentity = false } = {}
   return {
     value: {
       type,
-      childName,
-      location,
+      incidentType,
+      childName: childName || "Unknown",
+      location: location || district || "Unknown",
       description,
       district: district || "Unknown",
+      sector,
+      urgency,
       reporterContact: reporterContact || null,
       anonymous,
       age,
       gender,
+      latitude: latitude != null && Number.isFinite(latitude) ? latitude : null,
+      longitude: longitude != null && Number.isFinite(longitude) ? longitude : null,
     },
   };
 }
@@ -118,12 +128,14 @@ async function insertReport({ userId = null, report, districtFallback = "Unknown
   const caseId = await generateUniqueCaseId();
   const district = report.district || districtFallback || "Unknown";
   const publicContact = userId ? null : (report.anonymous ? null : report.reporterContact);
+  const lat = report.latitude != null ? Number(report.latitude) : null;
+  const lng = report.longitude != null ? Number(report.longitude) : null;
 
   const [result] = await pool.query(
     `INSERT INTO reporter_reports (
       case_id, user_id, report_type, child_name, child_age, child_gender, last_seen_location,
-      description, district, status, is_anonymous, public_contact
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, ?)`,
+      description, district, sector, incident_type, urgency, status, is_anonymous, public_contact
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, ?)`,
     [
       caseId,
       userId,
@@ -134,14 +146,18 @@ async function insertReport({ userId = null, report, districtFallback = "Unknown
       report.location,
       report.description,
       district,
+      report.sector || null,
+      report.incidentType || null,
+      report.urgency || "normal",
       report.anonymous ? 1 : 0,
       publicContact,
     ],
   );
 
   const [rows] = await pool.query(
-    `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
-            district, status, is_anonymous, public_contact, created_at, updated_at
+    `SELECT id, case_id, report_type, incident_type, urgency, child_name, child_age, child_gender,
+            last_seen_location, sector, description, district, status, is_anonymous,
+            public_contact, created_at, updated_at
      FROM reporter_reports
      WHERE id = ? LIMIT 1`,
     [result.insertId],
@@ -149,6 +165,7 @@ async function insertReport({ userId = null, report, districtFallback = "Unknown
 
   return rows[0];
 }
+
 
 // Public anonymous tip line / report endpoint (no login required)
 router.post("/public-reports", async (req, res) => {
@@ -178,8 +195,9 @@ router.use(authRequired, userRequired);
 router.get("/reports", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT id, case_id, report_type, child_name, child_age, child_gender, last_seen_location, description,
-              district, status, is_anonymous, public_contact, created_at, updated_at
+      `SELECT id, case_id, report_type, incident_type, urgency, child_name, child_age, child_gender,
+              last_seen_location, sector, description, district, status, is_anonymous,
+              public_contact, created_at, updated_at
        FROM reporter_reports
        WHERE user_id = ?
        ORDER BY created_at DESC`,
@@ -220,6 +238,52 @@ router.post("/reports", async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to submit report", error: error.message });
+  }
+});
+
+router.put("/reports/:caseId", async (req, res) => {
+  try {
+    const { childName, age, gender, location, district, description, incidentType } = req.body;
+    const normalizedAge = age === "" || age === null || age === undefined ? null : Number(age);
+
+    if (normalizedAge !== null && (!Number.isFinite(normalizedAge) || normalizedAge < 0 || normalizedAge > 120)) {
+      return res.status(400).json({ message: "age must be a valid number between 0 and 120" });
+    }
+    
+    // Check if case belongs to user and is in "submitted" status
+    const [rows] = await pool.query(
+      "SELECT id, status FROM reporter_reports WHERE case_id = ? AND user_id = ?",
+      [req.params.caseId, req.auth.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Case not found" });
+    }
+
+    if (rows[0].status !== "submitted") {
+      return res.status(400).json({ message: "Only reports in 'submitted' status can be edited." });
+    }
+
+    await pool.query(
+      `UPDATE reporter_reports 
+       SET child_name = ?, child_age = ?, child_gender = ?, last_seen_location = ?, district = ?, description = ?, incident_type = ?, updated_at = NOW()
+       WHERE case_id = ? AND user_id = ?`,
+      [
+        childName || null,
+        normalizedAge,
+        gender || null,
+        location || null,
+        district || null,
+        description || null,
+        incidentType || null,
+        req.params.caseId,
+        req.auth.id
+      ]
+    );
+
+    return res.json({ message: "Report updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update report", error: error.message });
   }
 });
 

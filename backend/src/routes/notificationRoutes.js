@@ -51,15 +51,35 @@ router.patch("/read-all", async (req, res) => {
 
 export default router;
 
+import { sendStatusUpdateEmail } from "../services/emailService.js";
+
 // ── Shared helper: send a notification to a user ───────────────────
-export async function sendNotification(userId, { type = "update", message, reportId = null }) {
+export async function sendNotification(userId, { type = "update", message, reportId = null, caseId = null, newStatus = null, caseType = null }) {
   if (!userId || !message) return;
   try {
     await pool.query(
       "INSERT INTO user_notifications (user_id, type, message, report_id) VALUES (?, ?, ?, ?)",
       [userId, type, message, reportId]
     );
-  } catch {
-    // Non-blocking — don't crash the parent request on notification failure
+
+    // If newStatus and caseId are provided, dispatch an email
+    if (newStatus && caseId) {
+      const [rows] = await pool.query(
+        "SELECT full_name, email FROM managed_users WHERE id = ? UNION SELECT full_name, email FROM admins WHERE id = ?",
+        [userId, userId]
+      );
+      if (rows.length > 0) {
+        const user = rows[0];
+        // Fire & forget the email so it doesn't block
+        sendStatusUpdateEmail(user.email, {
+          recipientName: user.full_name,
+          caseId,
+          newStatus,
+          caseType
+        }).catch(err => console.error("Email dispatch failed:", err));
+      }
+    }
+  } catch (err) {
+    console.error("Failed to send notification:", err);
   }
 }

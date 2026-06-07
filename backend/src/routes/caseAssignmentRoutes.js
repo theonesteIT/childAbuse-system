@@ -55,6 +55,29 @@ router.post("/:caseId", async (req, res) => {
       ]
     );
 
+    // Send in-app notification to the assigned user
+    await pool.query(
+      `INSERT INTO user_notifications (user_id, type, message, report_id, is_read)
+       VALUES (?, 'assignment', ?, ?, 0)`,
+      [
+        user.id,
+        `You have been assigned case ${report.case_id}. Please review and take action.`,
+        report.id,
+      ]
+    );
+
+    // Log audit action
+    await pool.query(
+      `INSERT INTO audit_logs (user_id, user_name, account_type, action, table_name, record_id, details)
+       VALUES (?, ?, 'admin', 'assign', 'reporter_reports', ?, ?)`,
+      [
+        req.auth.id,
+        req.auth.email || "Admin",
+        report.case_id,
+        `Assigned to ${user.full_name} (${user.role})`,
+      ]
+    ).catch(() => {}); // non-critical
+
     return res.json({ message: `Case assigned to ${user.full_name}` });
   } catch (err) {
     return res.status(500).json({ message: "Failed to assign case", error: err.message });

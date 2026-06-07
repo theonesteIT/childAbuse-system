@@ -59,7 +59,7 @@ router.post("/:caseId/notes", async (req, res) => {
       ]);
       // Find the reporter to notify
       const [rep] = await pool.query(
-        "SELECT user_id FROM reporter_reports WHERE case_id = ? LIMIT 1",
+        "SELECT user_id, report_type FROM reporter_reports WHERE case_id = ? LIMIT 1",
         [req.params.caseId]
       );
       if (rep.length > 0 && rep[0].user_id) {
@@ -67,6 +67,9 @@ router.post("/:caseId/notes", async (req, res) => {
           type: "status_update",
           message: `Your case ${req.params.caseId} status changed to "${status}"`,
           reportId: reports[0].id,
+          caseId: req.params.caseId,
+          newStatus: status,
+          caseType: rep[0].report_type || "case",
         });
       }
     }
