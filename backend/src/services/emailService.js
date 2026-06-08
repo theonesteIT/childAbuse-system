@@ -95,3 +95,32 @@ export async function sendStatusUpdateEmail(to, { recipientName, caseId, newStat
   `;
   return sendEmail(to, `Case ${caseId} — Status Updated: ${statusLabel}`, html);
 }
+
+/**
+ * Pre-built template: Emergency Alert broadcast
+ */
+export async function sendEmergencyAlertEmail(to, { recipientName, message, sentBy }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #ef4444;border-radius:12px;overflow:hidden">
+      <div style="background:#dc2626;padding:24px 32px">
+        <h1 style="color:white;margin:0;font-size:20px">⚠️ URGENT: Childwatch Emergency Alert</h1>
+      </div>
+      <div style="padding:32px">
+        <p style="color:#475569;margin-top:0">Hello <strong>${recipientName}</strong>,</p>
+        <p style="color:#475569">An urgent system-wide alert has been broadcasted by <strong>${sentBy}</strong>.</p>
+        <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:16px 20px;border-radius:6px;margin:20px 0">
+          <p style="margin:0;font-size:16px;font-weight:700;color:#991b1b">${message}</p>
+        </div>
+        <p style="color:#475569">Please take immediate action if required by your role.</p>
+        <a href="https://childwatch-frontend.vercel.app/login" style="display:inline-block;background:#dc2626;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:700;margin-top:8px">
+          Open Childwatch Dashboard →
+        </a>
+      </div>
+      <div style="background:#f1f5f9;padding:16px 32px;font-size:12px;color:#94a3b8;text-align:center">
+        Childwatch · Emergency Alert System<br/>
+        This message requires your immediate attention.
+      </div>
+    </div>
+  `;
+  return sendEmail(to, `⚠️ URGENT ALERT: Childwatch System`, html);
+}
