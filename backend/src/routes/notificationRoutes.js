@@ -7,6 +7,10 @@ router.use(authRequired);
 
 // GET /api/notifications  — get current user's notifications
 router.get("/", async (req, res) => {
+  if (req.auth.accountType !== "user") {
+    return res.json({ notifications: [], unread: 0 });
+  }
+
   try {
     const [rows] = await pool.query(
       `SELECT id, type, message, is_read, report_id, created_at
@@ -25,6 +29,10 @@ router.get("/", async (req, res) => {
 
 // PATCH /api/notifications/:id/read  — mark one as read
 router.patch("/:id/read", async (req, res) => {
+  if (req.auth.accountType !== "user") {
+    return res.status(403).json({ message: "Forbidden: notifications are not available for admin" });
+  }
+
   try {
     await pool.query(
       "UPDATE user_notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
@@ -38,6 +46,10 @@ router.patch("/:id/read", async (req, res) => {
 
 // PATCH /api/notifications/read-all  — mark all as read
 router.patch("/read-all", async (req, res) => {
+  if (req.auth.accountType !== "user") {
+    return res.status(403).json({ message: "Forbidden: notifications are not available for admin" });
+  }
+
   try {
     await pool.query(
       "UPDATE user_notifications SET is_read = 1 WHERE user_id = ?",
