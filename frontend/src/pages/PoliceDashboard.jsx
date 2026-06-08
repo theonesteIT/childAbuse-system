@@ -761,8 +761,7 @@ function ReportsView() {
             <h3 className="text-[14px] font-bold text-slate-800 dark:text-white mb-1">{r.title}</h3>
             <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">{r.sub}</p>
             <div className="flex gap-2">
-              <Btn variant="outline" className="flex-1 justify-center" onClick={() => alert("PDF generation coming soon")}><Download className="w-3.5 h-3.5" />PDF</Btn>
-              <Btn variant="outline" className="flex-1 justify-center" onClick={() => handleDownload(r.type)}><Download className="w-3.5 h-3.5" />CSV</Btn>
+              <Btn variant="outline" className="w-full justify-center" onClick={() => handleDownload(r.type)}><Download className="w-3.5 h-3.5" />CSV</Btn>
             </div>
           </div>
         ))}
