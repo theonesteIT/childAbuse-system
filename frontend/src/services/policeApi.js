@@ -33,4 +33,5 @@ export const updatePoliceCaseStatus = (id, status) =>
 
 export const getPoliceAlerts       = () => request("/police/alerts");
 export const getPoliceDistrictStats = () => request("/police/district-stats");
+export const getNotifications       = () => request("/notifications");
 

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { clearAuthSession, getAuthProfile } from "../utils/authStorage";
 import {
   getPoliceCases, getPoliceStats, getPoliceAlerts,
-  getPoliceDistrictStats, updatePoliceCaseStatus,
+  getPoliceDistrictStats, updatePoliceCaseStatus, getNotifications
 } from "../services/policeApi";
 import NotificationBell from "../components/NotificationBell";
 import FileUploadWidget from "../components/FileUploadWidget";
@@ -825,9 +825,27 @@ export default function PoliceDashboard() {
     };
     const loadAlerts = async () => {
       try {
-        const [alertsData, districtData] = await Promise.all([getPoliceAlerts(), getPoliceDistrictStats()]);
+        const [alertsData, districtData, notifsData] = await Promise.all([
+          getPoliceAlerts().catch(()=>({alerts:[]})), 
+          getPoliceDistrictStats().catch(()=>({districts:[]})),
+          getNotifications().catch(()=>({notifications:[]}))
+        ]);
         if (cancelled) return;
-        setAlerts(alertsData.alerts||[]);
+        
+        const caseAlerts = alertsData.alerts || [];
+        const sysNotifs = (notifsData.notifications || []).map(n => ({
+          caseId: null,
+          title: n.type === 'alert' ? "System Emergency Alert" : "System Notification",
+          text: n.message,
+          tag: n.type === 'alert' ? "Critical" : "Update",
+          urgency: n.type === 'alert' ? "critical" : "normal",
+          time: n.created_at,
+          isRead: n.is_read
+        }));
+        
+        const combined = [...caseAlerts, ...sysNotifs].sort((a, b) => new Date(b.time) - new Date(a.time));
+        
+        setAlerts(combined);
         setDistricts(districtData.districts||[]);
       } catch(err){ console.error("Alerts load failed:", err.message); }
       finally{ if(!cancelled) setAlertsLoading(false); }
@@ -908,7 +926,11 @@ export default function PoliceDashboard() {
             <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400">
               {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <NotificationBell accentColor="amber" />
+            <NotificationBell
+              accentColor="amber"
+              onBellClick={() => setActive("alerts")}
+              onNotificationClick={() => setActive("alerts")}
+            />
             <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center">
               <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">{initials}</span>
             </div>
