@@ -66,7 +66,7 @@ router.get("/", async (req, res) => {
       params.push(like, like, like);
     }
 
-    sql += " GROUP BY r.id ORDER BY r.created_at DESC";
+    sql += " GROUP BY r.id, ca.assigned_to_name ORDER BY r.created_at DESC";
 
     const [rows] = await pool.query(sql, params);
     return res.json({ reports: rows.map(toClientReport) });
@@ -108,7 +108,7 @@ router.patch("/:id/status", async (req, res) => {
        LEFT JOIN case_assignments ca ON r.case_id = ca.case_id
        LEFT JOIN attachments att ON r.case_id = att.case_id
        WHERE r.id = ?
-       GROUP BY r.id
+       GROUP BY r.id, ca.assigned_to_name
        LIMIT 1`,
       [req.params.id],
     );
