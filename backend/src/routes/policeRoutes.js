@@ -168,9 +168,18 @@ router.patch("/cases/:id/status", async (req, res) => {
   }
 });
 
-// GET /api/police/alerts — alerts for assigned cases only
+// GET /api/police/alerts — assigned-case alerts plus admin/system alerts
 router.get("/alerts", async (req, res) => {
   try {
+    const [notificationRows] = await pool.query(
+      `SELECT id, type, message, is_read, created_at
+       FROM user_notifications
+       WHERE user_id = ?
+       ORDER BY created_at DESC
+       LIMIT 10`,
+      [req.auth.id]
+    );
+
     const [rows] = await pool.query(
       `SELECT r.case_id, r.report_type, r.incident_type, r.district, r.urgency, r.created_at, r.status
        FROM reporter_reports r
@@ -184,7 +193,16 @@ router.get("/alerts", async (req, res) => {
       [req.auth.id]
     );
 
-    const alerts = rows.map(r => {
+    const notificationAlerts = notificationRows.map(row => ({
+      caseId: null,
+      title: row.type === 'alert' ? 'Emergency Alert' : 'System Notification',
+      text: row.message,
+      tag: row.type === 'alert' ? 'Alert' : 'Update',
+      urgency: row.type === 'alert' ? 'critical' : 'normal',
+      time: row.created_at,
+    }));
+
+    const caseAlerts = rows.map(r => {
       const minutesAgo = Math.round((Date.now() - new Date(r.created_at).getTime()) / 60000);
       const timeLabel = minutesAgo < 60
         ? `${minutesAgo} min ago`
@@ -208,9 +226,57 @@ router.get("/alerts", async (req, res) => {
       };
     });
 
-    return res.json({ alerts });
+    return res.json({ alerts: [...notificationAlerts, ...caseAlerts] });
   } catch (err) {
     return res.status(500).json({ message: "Failed to fetch alerts", error: err.message });
+  }
+});
+
+// GET /api/police/export?type=cases&format=csv
+router.get("/export", async (req, res) => {
+  const type = String(req.query.type || 'cases');
+  const format = String(req.query.format || 'csv');
+
+  function toCSV(headers, rows) {
+    const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header = headers.map(escape).join(',');
+    const body = rows.map(row => headers.map(h => escape(row[h])).join(','));
+    return [header, ...body].join('\n');
+  }
+
+  try {
+    let sql = `
+      SELECT r.case_id, r.report_type, r.child_name, r.child_age, r.child_gender,
+             r.last_seen_location, r.description, r.district, r.status, r.is_anonymous,
+             r.priority, r.created_at, r.updated_at, ca.assigned_at
+      FROM reporter_reports r
+      INNER JOIN case_assignments ca ON ca.report_id = r.id
+      WHERE ca.assigned_to_id = ?
+    `;
+    const params = [req.auth.id];
+
+    if (type === 'missing') {
+      sql += " AND r.report_type = 'Missing'";
+    } else if (type === 'monthly') {
+      sql += " AND MONTH(r.created_at) = MONTH(CURDATE()) AND YEAR(r.created_at) = YEAR(CURDATE())";
+    }
+    sql += " ORDER BY r.created_at DESC";
+
+    const [rows] = await pool.query(sql, params);
+    const headers = ['case_id','report_type','child_name','child_age','child_gender','last_seen_location','description','district','status','is_anonymous','priority','created_at','updated_at','assigned_at'];
+    const filename = `police_${type}_report`;
+
+    if (format === 'csv') {
+      const csv = toCSV(headers, rows);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
+      return res.send(csv);
+    }
+    
+    // JSON fallback
+    return res.json({ type, rows, headers });
+  } catch (err) {
+    return res.status(500).json({ message: "Export failed", error: err.message });
   }
 });
 
